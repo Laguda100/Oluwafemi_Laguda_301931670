@@ -1,0 +1,79 @@
+# Portfolio 5 - PostgreSQL 16 streaming replication cluster (1 primary + 1 hot standby)
+#
+# Start : docker compose -f portfolio-5-distributed-cloud/docker-compose.replication.yml up -d
+# Reset : docker compose -f portfolio-5-distributed-cloud/docker-compose.replication.yml down -v
+#
+# The primary is initialised with the Portfolio 1 schema and seed data on first start.
+# The replica clones the primary with pg_basebackup and then streams WAL continuously.
+# Ports: primary 5433, replica 5434 (5432 is used by the main development stack).
+
+name: crestfield-cluster
+
+services:
+  pg-primary:
+    image: postgres:16.4
+    container_name: crestfield-pg-primary
+    environment:
+      POSTGRES_USER: portal_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portal_dev_pw}          # local dev only
+      POSTGRES_DB: result_portal
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:-repl_dev_pw}      # local dev only
+    command:
+      - postgres
+      - -c
+      - wal_level=replica              # write enough WAL for a physical standby
+      - -c
+      - max_wal_senders=10             # concurrent replication connections allowed
+      - -c
+      - max_replication_slots=10
+      - -c
+      - wal_keep_size=256MB            # extra safety margin of retained WAL
+      - -c
+      - hot_standby=on
+      - -c
+      - cluster_name=primary
+      - -c
+      - hba_file=/etc/postgresql/pg_hba.conf
+    ports:
+      - "5433:5432"
+    volumes:
+      - primary_data:/var/lib/postgresql/data
+      - ./config/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ./config/00_replication.sh:/docker-entrypoint-initdb.d/00_replication.sh:ro
+      - ../portfolio-1-database-design/sql/01_schema.sql:/docker-entrypoint-initdb.d/10_schema.sql:ro
+      - ../portfolio-1-database-design/sql/02_seed.sql:/docker-entrypoint-initdb.d/20_seed.sql:ro
+      - ../portfolio-1-database-design/sql/03_views.sql:/docker-entrypoint-initdb.d/30_views.sql:ro
+      - ../:/portfolio:ro
+    healthcheck:
+      # -h 127.0.0.1 forces a TCP check, which only succeeds after initialisation finishes
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U portal_admin -d result_portal"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  pg-replica:
+    image: postgres:16.4
+    container_name: crestfield-pg-replica
+    environment:
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:-repl_dev_pw}
+      PGDATA: /var/lib/postgresql/data
+    entrypoint: ["bash", "/scripts/replica-entrypoint.sh"]
+    ports:
+      - "5434:5432"
+    volumes:
+      - replica_data:/var/lib/postgresql/data
+      - ./scripts/replica-entrypoint.sh:/scripts/replica-entrypoint.sh:ro
+      - ./config/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ../:/portfolio:ro
+    depends_on:
+      pg-primary:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U portal_admin -d result_portal"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+volumes:
+  primary_data:
+  replica_data:

@@ -1,0 +1,18 @@
+-- Session B: moderates the same two students in the OPPOSITE order.
+\ir common.sql
+\if :{?fix}
+\else
+    \set fix false
+\endif
+BEGIN;
+\if :fix
+SELECT registration_id FROM result WHERE registration_id IN (:reg1, :reg2)
+ORDER BY registration_id FOR UPDATE;
+\endif
+UPDATE result SET exam_score = exam_score + 1 WHERE registration_id = :reg2;
+\ir now.sql
+\echo [B :now] updated 00002, now updating 00001, which A holds, so B waits
+UPDATE result SET exam_score = exam_score + 1 WHERE registration_id = :reg1;
+\ir now.sql
+\echo [B :now] updated 00001, committing
+COMMIT;

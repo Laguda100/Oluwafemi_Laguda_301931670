@@ -1,6 +1,8 @@
 # MIT 8103 Advanced Database Systems - Crestfield University Result Portal
-# Local development stack. Portfolio 1-3 use the `postgres` service.
-# (MongoDB is added in Portfolio 4, the replica in Portfolio 5.)
+# Local development stack.
+#   postgres : Portfolios 1-3 (and the source data for Portfolio 4)
+#   mongo    : Portfolio 4
+# Portfolio 5 has its own compose file (primary + replica cluster).
 #
 # Start:  docker compose up -d
 # Stop:   docker compose down          (keeps data)
@@ -25,5 +27,21 @@ services:
       timeout: 3s
       retries: 10
 
+  # Portfolio 4: document store for transcripts, activity events, feedback
+  mongo:
+    image: mongo:7.0.14
+    container_name: crestfield-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+      - ./:/portfolio:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   pgdata:
+  mongodata:

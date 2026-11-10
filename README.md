@@ -22,31 +22,47 @@ Why this case suits the course:
 
 ```
 .
-├── docker-compose.yml                    # PostgreSQL 16 (MongoDB + replica added later)
+├── docker-compose.yml                    # PostgreSQL 16.4 + MongoDB 7.0 development stack
+├── docs/FINAL_DOCUMENTATION.md           # 2-3 page summary submitted on the LMS
 ├── portfolio-1-database-design/          # ER diagram, schema, constraints, normalisation
-├── portfolio-2-query-optimisation/       # queries, EXPLAIN ANALYZE, indexing
-├── portfolio-3-transactions-concurrency/ # COMMIT/ROLLBACK, isolation, locking
-├── portfolio-4-nosql/                    # MongoDB model of the same case study
-├── portfolio-5-distributed-cloud/        # replication, partitioning, CAP
+├── portfolio-2-query-optimisation/       # workload queries, EXPLAIN ANALYZE, indexing strategy
+├── portfolio-3-transactions-concurrency/ # COMMIT/ROLLBACK/SAVEPOINT, isolation, locking, deadlocks
+├── portfolio-4-nosql/                    # MongoDB: document, graph, event, key-value models
+├── portfolio-5-distributed-cloud/        # streaming replication, partitioning, CAP, failover
 └── README.md
 ```
 
-## Progress
+Each portfolio folder contains:
+- `README.md`: design reasoning, how it was implemented and tested, expected results, and the screenshot list
+- `run.ps1`: reproduces the whole activity with one command
+- `sql/` or `scripts/`: the source code
+- `results/`: raw output produced by `run.ps1`
+- `evidence/`: screenshots
 
-| Portfolio | Topic | Status |
+## Portfolios
+
+| Portfolio | Topic | Highlights |
 |---|---|---|
-| 1 | Database Design and Modelling | Complete: [README](portfolio-1-database-design/README.md) |
-| 2 | Query Processing and Optimisation | Not started |
-| 3 | Transactions and Concurrency | Not started |
-| 4 | NoSQL and Advanced Data Models | Not started |
-| 5 | Distributed and Cloud Database | Not started |
+| [1](portfolio-1-database-design/README.md) | Database Design and Modelling | 12-table BCNF schema, ER diagram, triggers, partial unique index, 10 constraint tests |
+| [2](portfolio-2-query-optimisation/README.md) | Query Processing and Optimisation | 2.3M-row dataset, 7 queries (CTE, window functions), 5 index types, before/after plans and timings |
+| [3](portfolio-3-transactions-concurrency/README.md) | Transactions and Concurrency | 6 single-session demos, 10 automated two-session concurrency demos |
+| [4](portfolio-4-nosql/README.md) | NoSQL and Advanced Data Models | Relational-to-document migration, `$jsonSchema`, `$graphLookup`, `$setWindowFields`, TTL, explain |
+| [5](portfolio-5-distributed-cloud/README.md) | Distributed and Cloud Database | Primary + replica, range/hash partitioning, sync vs async (CAP/PACELC), failover, cloud design |
 
 ## Requirements and quick start
 
-- Docker Desktop for Windows (WSL 2 backend)
-- PowerShell
+- Docker Desktop for Windows (WSL 2 backend), at least 4 GB RAM allocated
+- PowerShell 5.1 or later
 
 ```powershell
-docker compose up -d
+docker compose up -d                                  # PostgreSQL :5432, MongoDB :27017
 .\portfolio-1-database-design\run.ps1
+.\portfolio-2-query-optimisation\run.ps1              # rebuilds the database and adds about 2.3M rows
+.\portfolio-3-transactions-concurrency\run.ps1        # rebuilds the small Portfolio 1 dataset
+.\portfolio-4-nosql\run.ps1
+.\portfolio-5-distributed-cloud\run.ps1               # separate primary/replica cluster on :5433/:5434
 ```
+
+## AI use
+
+AI assistance was used in this portfolio and is declared in [docs/FINAL_DOCUMENTATION.md](docs/FINAL_DOCUMENTATION.md#6-ai-use-declaration), as section 11 of the assessment brief requires.

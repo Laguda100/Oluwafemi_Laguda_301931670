@@ -26,8 +26,9 @@ The same case study is used in all five portfolios.
 - I generated about 2.3 million registrations and about 2 million results (60,000 students over 8 sessions).
 - I wrote seven workload queries using joins, CTEs, window functions (RANK, NTILE, windowed AVG), subqueries and FILTER aggregates.
 - I captured `EXPLAIN (ANALYZE, BUFFERS)` plans before and after indexing.
-- The five indexes demonstrate different techniques: foreign-key indexes, a covering index (INCLUDE, enabling index-only scans), a partial index for failed results, an expression index for case-insensitive search, and a cohort filter.
-- The timing table is in `portfolio-2-query-optimisation/results/timing_summary.md`. The largest gain was Q1 (transcript lookup), where a parallel sequential scan of the registration table became an index-only scan. Q4 shows that the planner rightly keeps hash joins when a large share of the table is needed.
+- The five indexes demonstrate different techniques: foreign-key indexes, a covering index (INCLUDE), a partial index for failed results, an expression index for case-insensitive search, and a cohort filter.
+- The timing table is in `portfolio-2-query-optimisation/results/timing_summary.md`. The clearest gains were Q7 (51x, expression index), Q2 (15x, index on `offering_id`) and Q6 (3.4x).
+- The plans also contradicted some of my predictions. Q1 was already indexed through the composite unique constraint, so the covering index I1 was redundant. Q3 and Q5 got *slower*: the planner rated index scans on `offering_id` as cheaper, but they produced hundreds of thousands of scattered reads in place of one fast parallel sequential scan. Q4 shows that the planner rightly keeps hash joins when a large share of the table is needed.
 
 **Portfolio 3: Transactions and concurrency.**
 - I showed COMMIT, ROLLBACK, automatic abort on error, and SAVEPOINT, using result-upload and registration scenarios.
@@ -66,7 +67,7 @@ Each portfolio folder has a README explaining how it was implemented and tested,
 | Portfolio | Key screenshots |
 |---|---|
 | 1 | Healthy container, ER diagram, `\d+ result`, constraint tests all PASS, transcript and GPA output |
-| 2 | Data volume, Q1 and Q5 plans before/after, Q4 window output, index sizes, timing summary |
+| 2 | Data volume, Q1 plan before, Q2 and Q5 plans before/after, Q4 window output, index sizes, timing summary |
 | 3 | COMMIT/ROLLBACK, auto-abort and SAVEPOINT, lost update vs fix, overbooking (3 variants), deadlock, isolation levels, lock monitor |
 | 4 | Export/load, collections and indexes, transcript update, aggregations, `$graphLookup`, IXSCAN vs COLLSCAN, validation tests |
 | 5 | Healthy cluster, replication status, write/read test, partition pruning, sync vs async, failover |
@@ -78,7 +79,7 @@ Each portfolio folder has a README explaining how it was implemented and tested,
 - I also chose a row lock inside `register_course()` over relying on SERIALIZABLE. Both prevented overbooking, but the lock never needs a retry loop and only blocks students registering for the same course.
 
 **Challenges.**
-- **Unindexed foreign keys.** At first I assumed PostgreSQL indexes them automatically. The Portfolio 2 "before" plans showed a sequential scan over millions of registration rows for a single student's transcript, which taught me to read plans rather than guess.
+- **Predicting plans.** I expected the transcript query (Q1) to need a sequential scan of millions of registration rows, because PostgreSQL does not index foreign keys automatically. The "before" plan showed it was already using the index created by my composite unique constraint, whose leading column is `student_id`, so my new index only duplicated it. Two other queries got slower after indexing. Together these taught me to read the plans rather than guess, and that a lower cost estimate does not guarantee a faster query.
 - **Showing concurrency problems reliably.** Running two sessions by hand gave different timings every time. Scripting the sessions with `pg_sleep` and timestamped output made each anomaly reproducible.
 - **Windows line endings.** The Linux containers rejected shell scripts saved with Windows line endings. I fixed this with a `.gitattributes` rule.
 - **PowerShell and stderr.** PowerShell 5.1 treats a native program's stderr as an error, so I redirected psql output through `cmd`.

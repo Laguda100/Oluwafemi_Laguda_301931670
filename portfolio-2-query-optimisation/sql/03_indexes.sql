@@ -9,8 +9,12 @@
 
 -- I1  Foreign-key index + covering columns (Q1, Q4).
 --     PostgreSQL does NOT index foreign keys automatically. INCLUDE stores
---     offering_id and status in the index leaf so the planner can do an
---     index-only scan without visiting the 2.3M-row heap.
+--     offering_id and status in the index leaf, intended to allow an
+--     index-only scan.
+--     MEASURED RESULT: redundant. uq_registration_student_offering
+--     (student_id, offering_id) already serves Q1, and Q1 also needs
+--     registration_id, which is not included. Kept so the before/after
+--     comparison stays reproducible; see the README, section 4.
 CREATE INDEX IF NOT EXISTS ix_registration_student
     ON registration (student_id) INCLUDE (offering_id, status);
 

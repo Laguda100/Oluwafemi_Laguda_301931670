@@ -156,4 +156,4 @@ COMMIT;
 | `p3-04-overbooking.png` | Demo 3 (`2 registered / capacity 1`) next to Demo 4 (`40001` error) and Demo 5 (`is full` error) |
 | `p3-05-deadlock.png` | `demo6_deadlock.txt` with `ERROR: deadlock detected` and its DETAIL lines |
 | `p3-06-isolation.png` | Demo 8 (50 → 60) next to Demo 9 (50 → 50) |
-| `p3-07-lock-monitor.png` | Manual 3-terminal run: B blocked, `02_monitor_locks.sql` showing `blocked_by` |
+| `p3-07-lock-monitor.png` | Session A holds a row lock on a result, session B's UPDATE of the same row waits, and `02_monitor_locks.sql` shows B `blocked_by` A and B's ungranted `transactionid` ShareLock (`granted = f`) |

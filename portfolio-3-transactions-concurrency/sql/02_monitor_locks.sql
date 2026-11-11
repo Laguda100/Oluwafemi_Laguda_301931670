@@ -23,7 +23,10 @@ SELECT l.pid,
        l.mode,
        l.granted
 FROM pg_locks l
-WHERE l.database = (SELECT oid FROM pg_database WHERE datname = current_database())
+-- transactionid locks have no database, so they are matched by locktype
+-- (that is the lock a blocked UPDATE is waiting for: granted = f).
+WHERE (l.database = (SELECT oid FROM pg_database WHERE datname = current_database())
+       OR l.locktype = 'transactionid')
   AND l.pid <> pg_backend_pid()
   AND l.locktype IN ('relation', 'tuple', 'transactionid')
 ORDER BY l.pid, l.granted DESC;

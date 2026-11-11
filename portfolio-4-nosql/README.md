@@ -148,4 +148,3 @@ A GUI is optional: MongoDB Compass can connect to `mongodb://localhost:27017`.
 | `p4-05-graphlookup.png` | Q6 prerequisite chain with depth values |
 | `p4-06-explain.png` | Q11: IXSCAN (about 10 docs examined) vs COLLSCAN (about 50,000 docs examined) |
 | `p4-07-validation.png` | `results/05_validation_tests.txt`: all PASS with codes 121 and 11000 |
-| `p4-08-compass.png` (optional) | A student document in MongoDB Compass |

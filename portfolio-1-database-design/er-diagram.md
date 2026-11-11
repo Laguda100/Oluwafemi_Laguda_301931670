@@ -1,8 +1,9 @@
 # ER Diagram: Crestfield University Student Result Portal
 
-GitHub renders this diagram automatically. To get a PNG for the LMS document,
-paste the code block into https://mermaid.live and export it to
-`evidence/er-diagram.png`.
+GitHub renders this diagram automatically. A PNG of it is in
+[`evidence/p1-02-er-diagram.png`](evidence/p1-02-er-diagram.png), rendered from
+the code block below with Mermaid 11.4. Pasting the block into https://mermaid.live
+and exporting it produces the same diagram.
 
 ```mermaid
 erDiagram

@@ -158,7 +158,7 @@ Useful psql commands: `\dt` (tables), `\d+ result` (one table's structure), `\di
 | File | What it shows |
 |---|---|
 | `p1-01-docker-healthy.png` | `docker compose ps` with `crestfield-pg` showing `(healthy)` |
-| `p1-02-er-diagram.png` | The ER diagram exported from mermaid.live |
+| `p1-02-er-diagram.png` | The ER diagram from `er-diagram.md`, rendered with Mermaid 11.4 |
 | `p1-03-tables.png` | psql `\dt` listing all 12 tables |
 | `p1-04-result-structure.png` | `\d+ result`: CHECKs, generated column, PK/FK, both triggers |
 | `p1-05-constraint-tests.png` | Output of `04_constraint_tests.sql` with all `PASS` lines |

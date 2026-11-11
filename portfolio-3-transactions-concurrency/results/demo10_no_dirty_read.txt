@@ -1,0 +1,32 @@
+﻿===== Demo 10: No dirty reads, even with READ UNCOMMITTED =====
+Variables: 
+
+----- Session A (stdout) -----
+BEGIN
+UPDATE 1
+[A 17:14:08.727] exam_score set to 69 (uncommitted)
+ROLLBACK
+[A 17:14:11.741] rolled back
+----- Session A (errors) -----
+
+----- Session B (stdout) -----
+BEGIN
+ transaction_isolation 
+-----------------------
+ read uncommitted
+(1 row)
+
+[B 17:14:10.224] reader sees exam_score = 50.0 (50 means no dirty read, 69 would be a dirty read)
+COMMIT
+----- Session B (errors) -----
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       50.0
+ CFU/2025/00002 |       50.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 0 |               1
+

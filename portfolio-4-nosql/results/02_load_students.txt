@@ -1,0 +1,84 @@
+Inserted 12 student documents from /portfolio/portfolio-4-nosql/data/students.ndjson
+
+Sample document (CFU/2025/00001):
+{
+  _id: 'CFU/2025/00001',
+  cgpa: 4.5,
+  name: {
+    last: 'Adeleke',
+    first: 'Oluwaseun',
+    other: 'Tobi'
+  },
+  email: 'oluwaseun.adeleke@students.crestfield.edu.ng',
+  gender: 'M',
+  status: 'ACTIVE',
+  entryYear: 2025,
+  programme: {
+    code: 'BSC-CSC',
+    name: 'B.Sc. Computer Science',
+    faculty: 'Faculty of Computing and Applied Sciences',
+    department: 'Computer Science'
+  },
+  transcript: [
+    {
+      gpa: 4,
+      courses: [
+        {
+          ca: 24,
+          code: 'CSC 101',
+          exam: 38,
+          grade: 'B',
+          title: 'Introduction to Computing Sciences',
+          total: 62,
+          units: 3,
+          gradePoint: 4
+        },
+        {
+          ca: 14,
+          code: 'MTH 101',
+          exam: 48,
+          grade: 'B',
+          title: 'Elementary Mathematics I',
+          total: 62,
+          units: 3,
+          gradePoint: 4
+        }
+      ],
+      session: '2025/2026',
+      semester: 1
+    },
+    {
+      gpa: 5,
+      courses: [
+        {
+          ca: 27,
+          code: 'CSC 102',
+          exam: 43,
+          grade: 'A',
+          title: 'Introduction to Programming',
+          total: 70,
+          units: 3,
+          gradePoint: 5
+        },
+        {
+          ca: 17,
+          code: 'MTH 102',
+          exam: 53,
+          grade: 'A',
+          title: 'Elementary Mathematics II',
+          total: 70,
+          units: 3,
+          gradePoint: 5
+        }
+      ],
+      session: '2025/2026',
+      semester: 2
+    }
+  ],
+  dateOfBirth: ISODate('2006-03-14T00:00:00.000Z'),
+  currentLevel: 200,
+  classOfDegree: 'First Class',
+  migratedAt: ISODate('2026-11-11T17:14:34.746Z')
+}
+
+students: count=12, avgObjSize=1012 bytes, storageSize=4096 bytes

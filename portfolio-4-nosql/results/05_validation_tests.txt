@@ -1,0 +1,7 @@
+PASS  N1 exam score 85 (> 70): rejected (code 121 )
+PASS  N2 invalid matric number: rejected (code 121 )
+PASS  N3 missing required field programme: rejected (code 121 )
+PASS  N4 grade letter G not in enum: rejected (code 121 )
+PASS  N5 duplicate email (unique index): rejected (code 11000 )
+PASS  N6 update an existing exam score to 90: rejected (code 121 )
+PASS  N7 valid document accepted (then deleted)

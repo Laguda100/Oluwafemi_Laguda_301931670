@@ -1,0 +1,30 @@
+﻿===== Demo 9: REPEATABLE READ gives a stable snapshot =====
+Variables: rr=true
+
+----- Session A (stdout) -----
+BEGIN
+ transaction_isolation 
+-----------------------
+ repeatable read
+(1 row)
+
+[A 17:14:04.744] first read = 50.0
+[A 17:14:07.753] second read = 50.0
+COMMIT
+----- Session A (errors) -----
+
+----- Session B (stdout) -----
+UPDATE 1
+[B 17:14:06.288] exam_score +10 committed
+----- Session B (errors) -----
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       60.0
+ CFU/2025/00002 |       50.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 0 |               1
+

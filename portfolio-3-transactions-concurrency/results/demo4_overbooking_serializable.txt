@@ -1,0 +1,31 @@
+﻿===== Demo 4: Overbooking prevented by SERIALIZABLE =====
+Variables: serializable=true
+
+----- Session A (stdout) -----
+BEGIN
+[A 17:13:43.697] seats taken 0 of 1 , seat is free, registering student 9
+ROLLBACK
+[A 17:13:46.714] finished
+----- Session A (errors) -----
+psql:/portfolio/portfolio-3-transactions-concurrency/sql/concurrency/overbooking_A.sql:19: ERROR:  could not serialize access due to read/write dependencies among transactions
+DETAIL:  Reason code: Canceled on identification as a pivot, during write.
+HINT:  The transaction might succeed if retried.
+
+----- Session B (stdout) -----
+BEGIN
+[B 17:13:45.225] seats taken 0 of 1 , seat is free, registering student 10
+INSERT 0 1
+COMMIT
+[B 17:13:45.259] finished
+----- Session B (errors) -----
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       50.0
+ CFU/2025/00002 |       50.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 1 |               1
+

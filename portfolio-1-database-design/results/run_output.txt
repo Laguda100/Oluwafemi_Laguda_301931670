@@ -1,0 +1,187 @@
+﻿Portfolio 1 run - 2026-11-11 18:35:33
+
+==================== 01_schema.sql ====================
+BEGIN
+psql:/portfolio/portfolio-1-database-design/sql/01_schema.sql:14: NOTICE:  drop cascades to 3 other objects
+DETAIL:  drop cascades to view v_student_result
+drop cascades to view v_semester_gpa
+drop cascades to view v_cgpa
+DROP TABLE
+DROP FUNCTION
+DROP FUNCTION
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+COMMIT
+
+==================== 02_seed.sql ====================
+BEGIN
+INSERT 0 6
+INSERT 0 2
+INSERT 0 4
+INSERT 0 4
+INSERT 0 6
+INSERT 0 12
+INSERT 0 11
+INSERT 0 2
+INSERT 0 11
+ setval 
+--------
+      2
+(1 row)
+
+ setval 
+--------
+      4
+(1 row)
+
+ setval 
+--------
+      4
+(1 row)
+
+ setval 
+--------
+      6
+(1 row)
+
+ setval 
+--------
+     12
+(1 row)
+
+ setval 
+--------
+     11
+(1 row)
+
+ setval 
+--------
+      2
+(1 row)
+
+ setval 
+--------
+     11
+(1 row)
+
+INSERT 0 68
+INSERT 0 47
+UPDATE 6
+COMMIT
+
+==================== 03_views.sql ====================
+DROP VIEW
+psql:/portfolio/portfolio-1-database-design/sql/03_views.sql:9: NOTICE:  view "v_cgpa" does not exist, skipping
+psql:/portfolio/portfolio-1-database-design/sql/03_views.sql:9: NOTICE:  view "v_semester_gpa" does not exist, skipping
+psql:/portfolio/portfolio-1-database-design/sql/03_views.sql:9: NOTICE:  view "v_student_result" does not exist, skipping
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+
+==================== 04_constraint_tests.sql ====================
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T1 PASS: exam score > 70 rejected  [23514] new row for relation "result" violates check constraint "result_exam_score_check"
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T2 PASS: duplicate registration rejected  [23505] duplicate key value violates unique constraint "uq_registration_student_offering"
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T3 PASS: invalid matric number rejected  [23514] new row for relation "student" violates check constraint "student_matric_no_check"
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T4 PASS: unknown student rejected  [23503] insert or update on table "registration" violates foreign key constraint "registration_student_id_fkey"
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T5 PASS: second current session rejected  [23505] duplicate key value violates unique constraint "uq_one_current_session"
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T6 PASS: approved result is locked  [P0001] Result for registration 1 is locked: course result already APPROVED
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T7 PASS: department delete blocked  [23503] update or delete on table "department" violates foreign key constraint "programme_department_id_fkey" on table "programme"
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T8 PASS: total_score is system-computed  [428C9] cannot insert a non-DEFAULT value into column "total_score"
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T9 PASS: lecturer without department rejected  [23502] null value in column "department_id" of relation "lecturer" violates not-null constraint
+psql:/portfolio/portfolio-1-database-design/sql/04_constraint_tests.sql:119: NOTICE:  T10 PASS: valid result accepted (rolled back afterwards)
+DO
+
+==================== 05_verify.sql ====================
+--- 1. Row count per table ---
+    table_name    | count 
+------------------+-------
+ faculty          |     2
+ department       |     4
+ programme        |     4
+ lecturer         |     6
+ student          |    12
+ course           |    11
+ academic_session |     2
+ course_offering  |    11
+ registration     |    68
+ result           |    47
+ grade_scale      |     6
+ result_audit     |    47
+(12 rows)
+
+--- 2. Transcript for CFU/2025/00001 ---
+ session_name | semester | course_code |            course_title            | credit_units | ca_score | exam_score | total_score | grade | grade_point | result_status 
+--------------+----------+-------------+------------------------------------+--------------+----------+------------+-------------+-------+-------------+---------------
+ 2025/2026    |        1 | CSC 101     | Introduction to Computing Sciences |            3 |     24.0 |       38.0 |        62.0 | B     |           4 | APPROVED
+ 2025/2026    |        1 | MTH 101     | Elementary Mathematics I           |            3 |     14.0 |       48.0 |        62.0 | B     |           4 | APPROVED
+ 2025/2026    |        2 | CSC 102     | Introduction to Programming        |            3 |     27.0 |       43.0 |        70.0 | A     |           5 | APPROVED
+ 2025/2026    |        2 | MTH 102     | Elementary Mathematics II          |            3 |     17.0 |       53.0 |        70.0 | A     |           5 | APPROVED
+ 2026/2027    |        1 | CSC 203     | Database Systems I                 |            3 |     29.0 |       27.0 |        56.0 | C     |           3 | OPEN
+(5 rows)
+
+--- 3. Semester GPA (approved results only) ---
+   matric_no    |   student_name    | session_name | semester | total_credit_units | total_quality_points | gpa  
+----------------+-------------------+--------------+----------+--------------------+----------------------+------
+ CFU/2025/00001 | Oluwaseun Adeleke | 2025/2026    |        1 |                  6 |                   24 | 4.00
+ CFU/2025/00001 | Oluwaseun Adeleke | 2025/2026    |        2 |                  6 |                   30 | 5.00
+ CFU/2025/00002 | Ngozi Okafor      | 2025/2026    |        1 |                  6 |                   27 | 4.50
+ CFU/2025/00002 | Ngozi Okafor      | 2025/2026    |        2 |                  6 |                   30 | 5.00
+ CFU/2025/00003 | Musa Abdullahi    | 2025/2026    |        1 |                  6 |                   24 | 4.00
+ CFU/2025/00003 | Musa Abdullahi    | 2025/2026    |        2 |                  6 |                   18 | 3.00
+ CFU/2025/00004 | Aisha Bello       | 2025/2026    |        1 |                  6 |                   18 | 3.00
+ CFU/2025/00004 | Aisha Bello       | 2025/2026    |        2 |                  6 |                   18 | 3.00
+ CFU/2025/00005 | Chukwuemeka Obi   | 2025/2026    |        1 |                  6 |                   24 | 4.00
+ CFU/2025/00005 | Chukwuemeka Obi   | 2025/2026    |        2 |                  3 |                   15 | 5.00
+ CFU/2025/00006 | Temitope Ajayi    | 2025/2026    |        1 |                  6 |                   30 | 5.00
+ CFU/2025/00006 | Temitope Ajayi    | 2025/2026    |        2 |                  3 |                   15 | 5.00
+ CFU/2025/00007 | Ifeanyi Nnamdi    | 2025/2026    |        1 |                  6 |                   21 | 3.50
+ CFU/2025/00007 | Ifeanyi Nnamdi    | 2025/2026    |        2 |                  3 |                    9 | 3.00
+ CFU/2025/00008 | Blessing Etim     | 2025/2026    |        1 |                  8 |                   28 | 3.50
+ CFU/2025/00009 | Yusuf Garba       | 2025/2026    |        1 |                  8 |                   37 | 4.63
+ CFU/2025/00010 | Folake Ogundipe   | 2025/2026    |        1 |                  8 |                   34 | 4.25
+ CFU/2025/00011 | Kelechi Uche      | 2025/2026    |        1 |                  8 |                   32 | 4.00
+ CFU/2025/00012 | Zainab Lawal      | 2025/2026    |        1 |                  8 |                   26 | 3.25
+(19 rows)
+
+--- 4. CGPA ranking and class of degree ---
+   matric_no    |   student_name    | total_credit_units | cgpa |  class_of_degree   
+----------------+-------------------+--------------------+------+--------------------
+ CFU/2025/00006 | Temitope Ajayi    |                  9 | 5.00 | First Class
+ CFU/2025/00002 | Ngozi Okafor      |                 12 | 4.75 | First Class
+ CFU/2025/00009 | Yusuf Garba       |                  8 | 4.63 | First Class
+ CFU/2025/00001 | Oluwaseun Adeleke |                 12 | 4.50 | First Class
+ CFU/2025/00005 | Chukwuemeka Obi   |                  9 | 4.33 | Second Class Upper
+ CFU/2025/00010 | Folake Ogundipe   |                  8 | 4.25 | Second Class Upper
+ CFU/2025/00011 | Kelechi Uche      |                  8 | 4.00 | Second Class Upper
+ CFU/2025/00003 | Musa Abdullahi    |                 12 | 3.50 | Second Class Upper
+ CFU/2025/00008 | Blessing Etim     |                  8 | 3.50 | Second Class Upper
+ CFU/2025/00007 | Ifeanyi Nnamdi    |                  9 | 3.33 | Second Class Lower
+ CFU/2025/00012 | Zainab Lawal      |                  8 | 3.25 | Second Class Lower
+ CFU/2025/00004 | Aisha Bello       |                 12 | 3.00 | Second Class Lower
+(12 rows)
+
+--- 5. Latest audit entries ---
+ audit_id | registration_id | action | new_ca_score | new_exam_score |  changed_by  |          changed_at           
+----------+-----------------+--------+--------------+----------------+--------------+-------------------------------
+       47 |              51 | I      |         29.0 |           27.0 | portal_admin | 2026-11-11 17:35:34.806179+00
+       46 |              50 | I      |         20.0 |           38.0 | portal_admin | 2026-11-11 17:35:34.806179+00
+       45 |              49 | I      |         27.0 |           49.0 | portal_admin | 2026-11-11 17:35:34.806179+00
+       44 |              48 | I      |         18.0 |           60.0 | portal_admin | 2026-11-11 17:35:34.806179+00
+       43 |              47 | I      |         25.0 |           25.0 | portal_admin | 2026-11-11 17:35:34.806179+00
+(5 rows)
+

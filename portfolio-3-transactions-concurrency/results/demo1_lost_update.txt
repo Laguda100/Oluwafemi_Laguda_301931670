@@ -1,0 +1,30 @@
+﻿===== Demo 1: Lost update (READ COMMITTED, read-modify-write) =====
+Variables: fix=false
+
+----- Session A (stdout) -----
+BEGIN
+[A 17:13:31.159] read exam_score = 50.0 , will write 50.0 + 5
+UPDATE 1
+COMMIT
+[A 17:13:34.187] committed
+----- Session A (errors) -----
+
+----- Session B (stdout) -----
+[B 17:13:32.625] reading exam_score
+BEGIN
+[B 17:13:32.633] read exam_score = 50.0 , will write 50.0 + 2
+UPDATE 1
+COMMIT
+[B 17:13:32.646] committed
+----- Session B (errors) -----
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       55.0
+ CFU/2025/00002 |       50.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 0 |               1
+

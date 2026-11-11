@@ -1,0 +1,462 @@
+### Q1 Student transcript (multi-table JOIN through a view)
+                                                                                           QUERY PLAN                                                                                            
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=165.43..165.51 rows=33 width=67) (actual time=1.778..1.788 rows=36 loops=1)
+   Sort Key: sess.name, c.semester, c.course_code
+   Sort Method: quicksort  Memory: 28kB
+   Buffers: shared hit=411 read=11
+   ->  Nested Loop  (cost=2.92..164.59 rows=33 width=67) (actual time=0.471..1.580 rows=36 loops=1)
+         Buffers: shared hit=402 read=11
+         ->  Nested Loop  (cost=1.84..128.05 rows=33 width=63) (actual time=0.384..1.040 rows=36 loops=1)
+               Buffers: shared hit=363 read=11
+               ->  Nested Loop  (cost=1.70..125.91 rows=33 width=55) (actual time=0.355..0.940 rows=36 loops=1)
+                     Buffers: shared hit=357 read=11
+                     ->  Nested Loop  (cost=1.55..120.21 rows=33 width=21) (actual time=0.323..0.802 rows=36 loops=1)
+                           Buffers: shared hit=285 read=11
+                           ->  Nested Loop  (cost=1.27..110.47 rows=33 width=19) (actual time=0.297..0.590 rows=36 loops=1)
+                                 Buffers: shared hit=179 read=9
+                                 ->  Nested Loop  (cost=0.84..91.65 rows=39 width=12) (actual time=0.238..0.304 rows=48 loops=1)
+                                       Buffers: shared hit=2 read=6
+                                       ->  Index Scan using student_matric_no_key on student s  (cost=0.41..8.43 rows=1 width=4) (actual time=0.162..0.164 rows=1 loops=1)
+                                             Index Cond: ((matric_no)::text = 'CFU/2023/00450'::text)
+                                             Buffers: shared hit=1 read=3
+                                       ->  Index Scan using uq_registration_student_offering on registration reg  (cost=0.43..82.79 rows=43 width=16) (actual time=0.071..0.121 rows=48 loops=1)
+                                             Index Cond: (student_id = s.student_id)
+                                             Filter: ((status)::text = 'REGISTERED'::text)
+                                             Buffers: shared hit=1 read=3
+                                 ->  Index Scan using result_pkey on result r  (cost=0.43..0.48 rows=1 width=23) (actual time=0.005..0.005 rows=1 loops=48)
+                                       Index Cond: (registration_id = reg.registration_id)
+                                       Buffers: shared hit=177 read=3
+                           ->  Index Scan using course_offering_pkey on course_offering o  (cost=0.28..0.30 rows=1 width=10) (actual time=0.005..0.005 rows=1 loops=36)
+                                 Index Cond: (offering_id = reg.offering_id)
+                                 Buffers: shared hit=106 read=2
+                     ->  Index Scan using course_pkey on course c  (cost=0.14..0.17 rows=1 width=42) (actual time=0.003..0.003 rows=1 loops=36)
+                           Index Cond: (course_id = o.course_id)
+                           Buffers: shared hit=72
+               ->  Memoize  (cost=0.14..0.17 rows=1 width=12) (actual time=0.002..0.002 rows=1 loops=36)
+                     Cache Key: o.session_id
+                     Cache Mode: logical
+                     Hits: 33  Misses: 3  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                     Buffers: shared hit=6
+                     ->  Index Scan using academic_session_pkey on academic_session sess  (cost=0.13..0.16 rows=1 width=12) (actual time=0.010..0.010 rows=1 loops=3)
+                           Index Cond: (session_id = o.session_id)
+                           Buffers: shared hit=6
+         ->  Limit  (cost=1.08..1.09 rows=1 width=8) (actual time=0.014..0.014 rows=1 loops=36)
+               Buffers: shared hit=39
+               ->  Sort  (cost=1.08..1.09 rows=2 width=8) (actual time=0.013..0.013 rows=1 loops=36)
+                     Sort Key: gs.min_score DESC
+                     Sort Method: top-N heapsort  Memory: 25kB
+                     Buffers: shared hit=39
+                     ->  Seq Scan on grade_scale gs  (cost=0.00..1.07 rows=2 width=8) (actual time=0.003..0.005 rows=4 loops=36)
+                           Filter: (min_score <= r.total_score)
+                           Rows Removed by Filter: 2
+                           Buffers: shared hit=36
+ Planning:
+   Buffers: shared hit=749 read=21
+ Planning Time: 10.205 ms
+ Execution Time: 2.198 ms
+
+### Q2 Course result sheet (JOIN + LATERAL grade lookup)
+                                                                                       QUERY PLAN                                                                                        
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=2.63..4781.68 rows=25 width=64) (actual time=1439.984..1445.258 rows=25 loops=1)
+   Buffers: shared hit=63791 read=46812
+   ->  Nested Loop  (cost=2.63..244689.60 rows=1280 width=64) (actual time=1439.983..1445.252 rows=25 loops=1)
+         Buffers: shared hit=63791 read=46812
+         ->  Nested Loop  (cost=1.55..243265.60 rows=1280 width=43) (actual time=1439.928..1444.968 rows=25 loops=1)
+               Buffers: shared hit=63767 read=46811
+               ->  Nested Loop  (cost=1.12..242535.59 rows=1513 width=36) (actual time=1439.873..1444.507 rows=25 loops=1)
+                     Join Filter: (o.offering_id = reg.offering_id)
+                     Rows Removed by Join Filter: 1084620
+                     Buffers: shared hit=63719 read=46759
+                     ->  Nested Loop  (cost=0.84..207420.62 rows=2340068 width=40) (actual time=0.134..997.698 rows=1084645 loops=1)
+                           Buffers: shared hit=63713 read=46759
+                           ->  Index Scan using student_matric_no_key on student s  (cost=0.41..6831.27 rows=60012 width=32) (actual time=0.088..27.966 rows=22597 loops=1)
+                                 Buffers: shared hit=2275 read=1212
+                           ->  Index Scan using uq_registration_student_offering on registration reg  (cost=0.43..2.91 rows=43 width=16) (actual time=0.018..0.033 rows=48 loops=22597)
+                                 Index Cond: (student_id = s.student_id)
+                                 Buffers: shared hit=61438 read=45547
+                     ->  Materialize  (cost=0.28..13.96 rows=1 width=4) (actual time=0.000..0.000 rows=1 loops=1084645)
+                           Buffers: shared hit=6
+                           ->  Nested Loop  (cost=0.28..13.95 rows=1 width=4) (actual time=0.056..0.098 rows=1 loops=1)
+                                 Buffers: shared hit=6
+                                 ->  Seq Scan on academic_session sess  (cost=0.00..1.10 rows=1 width=2) (actual time=0.018..0.019 rows=1 loops=1)
+                                       Filter: (name = '2024/2025'::bpchar)
+                                       Rows Removed by Filter: 7
+                                       Buffers: shared hit=1
+                                 ->  Nested Loop  (cost=0.28..12.84 rows=1 width=6) (actual time=0.036..0.076 rows=1 loops=1)
+                                       Buffers: shared hit=5
+                                       ->  Seq Scan on course c  (cost=0.00..4.54 rows=1 width=4) (actual time=0.009..0.046 rows=1 loops=1)
+                                             Filter: ((course_code)::text = 'CSC 310'::text)
+                                             Rows Removed by Filter: 202
+                                             Buffers: shared hit=2
+                                       ->  Index Scan using uq_offering_course_session on course_offering o  (cost=0.28..8.30 rows=1 width=10) (actual time=0.026..0.027 rows=1 loops=1)
+                                             Index Cond: ((course_id = c.course_id) AND (session_id = sess.session_id))
+                                             Buffers: shared hit=3
+               ->  Index Scan using result_pkey on result r  (cost=0.43..0.48 rows=1 width=23) (actual time=0.016..0.016 rows=1 loops=25)
+                     Index Cond: (registration_id = reg.registration_id)
+                     Buffers: shared hit=48 read=52
+         ->  Limit  (cost=1.08..1.09 rows=1 width=6) (actual time=0.010..0.010 rows=1 loops=25)
+               Buffers: shared hit=24 read=1
+               ->  Sort  (cost=1.08..1.09 rows=2 width=6) (actual time=0.009..0.009 rows=1 loops=25)
+                     Sort Key: gs.min_score DESC
+                     Sort Method: top-N heapsort  Memory: 25kB
+                     Buffers: shared hit=24 read=1
+                     ->  Seq Scan on grade_scale gs  (cost=0.00..1.07 rows=2 width=6) (actual time=0.002..0.003 rows=4 loops=25)
+                           Filter: (min_score <= r.total_score)
+                           Rows Removed by Filter: 2
+                           Buffers: shared hit=24 read=1
+ Planning:
+   Buffers: shared hit=56
+ Planning Time: 9.223 ms
+ Execution Time: 1445.418 ms
+
+### Q3 Departmental pass-rate report (GROUP BY + FILTER aggregates)
+                                                                                   QUERY PLAN                                                                                    
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=49571.43..49571.94 rows=203 width=88) (actual time=314.499..320.656 rows=48 loops=1)
+   Sort Key: (round(((100.0 * (count(*) FILTER (WHERE (r.total_score >= '40'::numeric)))::numeric) / (count(*))::numeric), 1)), c.course_code
+   Sort Method: quicksort  Memory: 28kB
+   Buffers: shared hit=361877 read=17770
+   ->  Finalize GroupAggregate  (cost=49505.62..49563.65 rows=203 width=88) (actual time=314.250..320.597 rows=48 loops=1)
+         Group Key: c.course_code
+         Buffers: shared hit=361877 read=17770
+         ->  Gather Merge  (cost=49505.62..49552.99 rows=406 width=56) (actual time=314.232..320.447 rows=144 loops=1)
+               Workers Planned: 2
+               Workers Launched: 2
+               Buffers: shared hit=361877 read=17770
+               ->  Sort  (cost=48505.60..48506.10 rows=203 width=56) (actual time=308.368..308.378 rows=48 loops=3)
+                     Sort Key: c.course_code
+                     Sort Method: quicksort  Memory: 30kB
+                     Buffers: shared hit=361877 read=17770
+                     Worker 0:  Sort Method: quicksort  Memory: 30kB
+                     Worker 1:  Sort Method: quicksort  Memory: 30kB
+                     ->  Partial HashAggregate  (cost=48495.28..48497.82 rows=203 width=56) (actual time=308.239..308.284 rows=48 loops=3)
+                           Group Key: c.course_code
+                           Batches: 1  Memory Usage: 64kB
+                           Buffers: shared hit=361862 read=17769
+                           Worker 0:  Batches: 1  Memory Usage: 64kB
+                           Worker 1:  Batches: 1  Memory Usage: 64kB
+                           ->  Nested Loop  (cost=51.86..48168.63 rows=26132 width=13) (actual time=0.923..291.532 rows=30000 loops=3)
+                                 Buffers: shared hit=361862 read=17769
+                                 ->  Hash Join  (cost=51.44..33267.91 rows=30883 width=16) (actual time=0.885..200.851 rows=30000 loops=3)
+                                       Hash Cond: (reg.offering_id = o.offering_id)
+                                       Buffers: shared hit=8184 read=11445
+                                       ->  Parallel Seq Scan on registration reg  (cost=0.00..29251.28 rows=975028 width=12) (actual time=0.016..90.150 rows=780023 loops=3)
+                                             Buffers: shared hit=8081 read=11420
+                                       ->  Hash  (cost=50.82..50.82 rows=49 width=12) (actual time=0.710..0.715 rows=48 loops=3)
+                                             Buckets: 1024  Batches: 1  Memory Usage: 11kB
+                                             Buffers: shared hit=76 read=24
+                                             ->  Hash Join  (cost=7.94..50.82 rows=49 width=12) (actual time=0.566..0.696 rows=48 loops=3)
+                                                   Hash Cond: (o.course_id = c.course_id)
+                                                   Buffers: shared hit=76 read=24
+                                                   ->  Hash Join  (cost=1.11..42.79 rows=193 width=8) (actual time=0.414..0.508 rows=192 loops=3)
+                                                         Hash Cond: (o.session_id = sess.session_id)
+                                                         Buffers: shared hit=70 read=21
+                                                         ->  Seq Scan on course_offering o  (cost=0.00..35.47 rows=1547 width=10) (actual time=0.012..0.209 rows=1547 loops=3)
+                                                               Buffers: shared hit=40 read=20
+                                                         ->  Hash  (cost=1.10..1.10 rows=1 width=2) (actual time=0.026..0.027 rows=1 loops=3)
+                                                               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                               Buffers: shared hit=2 read=1
+                                                               ->  Seq Scan on academic_session sess  (cost=0.00..1.10 rows=1 width=2) (actual time=0.021..0.022 rows=1 loops=3)
+                                                                     Filter: (name = '2024/2025'::bpchar)
+                                                                     Rows Removed by Filter: 7
+                                                                     Buffers: shared hit=2 read=1
+                                                   ->  Hash  (cost=6.19..6.19 rows=51 width=12) (actual time=0.134..0.136 rows=52 loops=3)
+                                                         Buckets: 1024  Batches: 1  Memory Usage: 11kB
+                                                         Buffers: shared hit=6 read=3
+                                                         ->  Hash Join  (cost=1.06..6.19 rows=51 width=12) (actual time=0.061..0.115 rows=52 loops=3)
+                                                               Hash Cond: (c.department_id = d.department_id)
+                                                               Buffers: shared hit=6 read=3
+                                                               ->  Seq Scan on course c  (cost=0.00..4.03 rows=203 width=14) (actual time=0.019..0.040 rows=203 loops=3)
+                                                                     Buffers: shared hit=4 read=2
+                                                               ->  Hash  (cost=1.05..1.05 rows=1 width=2) (actual time=0.023..0.024 rows=1 loops=3)
+                                                                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                                     Buffers: shared hit=2 read=1
+                                                                     ->  Seq Scan on department d  (cost=0.00..1.05 rows=1 width=2) (actual time=0.011..0.012 rows=1 loops=3)
+                                                                           Filter: ((code)::text = 'CSC'::text)
+                                                                           Rows Removed by Filter: 3
+                                                                           Buffers: shared hit=2 read=1
+                                 ->  Index Scan using result_pkey on result r  (cost=0.43..0.48 rows=1 width=13) (actual time=0.003..0.003 rows=1 loops=90000)
+                                       Index Cond: (registration_id = reg.registration_id)
+                                       Buffers: shared hit=353678 read=6324
+ Planning:
+   Buffers: shared hit=74 read=49
+ Planning Time: 2.555 ms
+ Execution Time: 320.786 ms
+
+### Q4 Top 3 graduates per programme, 2022 cohort (CTE + window functions)
+                                                                                                          QUERY PLAN                                                                                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Incremental Sort  (cost=102541.91..105404.10 rows=29868 width=95) (actual time=1915.402..1945.812 rows=13 loops=1)
+   Sort Key: ranked.programme, ranked.programme_rank, ranked.matric_no
+   Presorted Key: ranked.programme
+   Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 25kB  Peak Memory: 25kB
+   Buffers: shared hit=11514 read=25899, temp read=16608 written=16692
+   ->  Subquery Scan on ranked  (cost=102529.42..103948.15 rows=29868 width=95) (actual time=1908.987..1945.744 rows=13 loops=1)
+         Buffers: shared hit=11511 read=25899, temp read=16608 written=16692
+         ->  WindowAgg  (cost=102529.42..103649.47 rows=29868 width=103) (actual time=1908.983..1945.735 rows=13 loops=1)
+               Filter: ((rank() OVER (?)) <= 3)
+               Rows Removed by Filter: 7487
+               Buffers: shared hit=11511 read=25899, temp read=16608 written=16692
+               ->  WindowAgg  (cost=102529.42..103126.78 rows=29868 width=63) (actual time=1907.226..1940.597 rows=7500 loops=1)
+                     Run Condition: (rank() OVER (?) <= 3)
+                     Buffers: shared hit=11511 read=25899, temp read=16608 written=16692
+                     ->  Sort  (cost=102529.42..102604.09 rows=29868 width=55) (actual time=1907.174..1938.218 rows=7500 loops=1)
+                           Sort Key: cohort_cgpa.programme, cohort_cgpa.cgpa DESC
+                           Sort Method: quicksort  Memory: 603kB
+                           Buffers: shared hit=11511 read=25899, temp read=16608 written=16692
+                           ->  Subquery Scan on cohort_cgpa  (cost=99413.25..100309.29 rows=29868 width=55) (actual time=1884.976..1926.575 rows=7500 loops=1)
+                                 Buffers: shared hit=11511 read=25899, temp read=16608 written=16692
+                                 ->  HashAggregate  (cost=99413.25..100010.61 rows=29868 width=59) (actual time=1884.968..1924.840 rows=7500 loops=1)
+                                       Group Key: s.student_id, p.code
+                                       Batches: 1  Memory Usage: 2577kB
+                                       Buffers: shared hit=11511 read=25899, temp read=16608 written=16692
+                                       ->  Nested Loop  (cost=36636.55..96333.66 rows=246367 width=31) (actual time=1350.237..1732.787 rows=360000 loops=1)
+                                             Buffers: shared hit=11511 read=25899, temp read=16608 written=16692
+                                             ->  Gather  (cost=36635.45..90099.86 rows=246367 width=34) (actual time=1350.019..1454.024 rows=360000 loops=1)
+                                                   Workers Planned: 2
+                                                   Workers Launched: 2
+                                                   Buffers: shared hit=11439 read=25899, temp read=16608 written=16692
+                                                   ->  Hash Join  (cost=35635.45..64463.16 rows=102653 width=34) (actual time=1307.171..1596.236 rows=120000 loops=3)
+                                                         Hash Cond: (s.programme_id = p.programme_id)
+                                                         Buffers: shared hit=11439 read=25899, temp read=16608 written=16692
+                                                         ->  Parallel Hash Join  (cost=35634.36..63907.11 rows=102653 width=28) (actual time=1244.585..1498.914 rows=120000 loops=3)
+                                                               Hash Cond: (r.registration_id = reg.registration_id)
+                                                               Buffers: shared hit=11321 read=25898, temp read=16608 written=16692
+                                                               ->  Parallel Seq Scan on result r  (cost=0.00..24751.20 rows=825020 width=13) (actual time=0.062..105.520 rows=660016 loops=3)
+                                                                     Buffers: shared hit=3750 read=12751
+                                                               ->  Parallel Hash  (cost=34117.89..34117.89 rows=121318 width=31) (actual time=510.249..510.257 rows=120000 loops=3)
+                                                                     Buckets: 131072 (originally 524288)  Batches: 8 (originally 1)  Memory Usage: 4256kB
+                                                                     Buffers: shared hit=7547 read=13147, temp written=2128
+                                                                     ->  Hash Join  (cost=1662.54..34117.89 rows=121318 width=31) (actual time=14.059..360.666 rows=120000 loops=3)
+                                                                           Hash Cond: (o.course_id = c.course_id)
+                                                                           Buffers: shared hit=7547 read=13147
+                                                                           ->  Hash Join  (cost=1655.97..33786.21 rows=121318 width=33) (actual time=13.642..323.904 rows=120000 loops=3)
+                                                                                 Hash Cond: (reg.offering_id = o.offering_id)
+                                                                                 Buffers: shared hit=7519 read=13147
+                                                                                 ->  Parallel Hash Join  (cost=1601.16..33412.07 rows=121318 width=33) (actual time=11.556..278.931 rows=120000 loops=3)
+                                                                                       Hash Cond: (reg.student_id = s.student_id)
+                                                                                       Buffers: shared hit=7459 read=13147
+                                                                                       ->  Parallel Seq Scan on registration reg  (cost=0.00..29251.28 rows=975028 width=16) (actual time=0.037..109.133 rows=780023 loops=3)
+                                                                                             Buffers: shared hit=7318 read=12183
+                                                                                       ->  Parallel Hash  (cost=1546.26..1546.26 rows=4392 width=21) (actual time=10.598..10.599 rows=2500 loops=3)
+                                                                                             Buckets: 8192  Batches: 1  Memory Usage: 512kB
+                                                                                             Buffers: shared hit=141 read=964
+                                                                                             ->  Parallel Seq Scan on student s  (cost=0.00..1546.26 rows=4392 width=21) (actual time=0.075..9.052 rows=2500 loops=3)
+                                                                                                   Filter: (entry_year = 2022)
+                                                                                                   Rows Removed by Filter: 17504
+                                                                                                   Buffers: shared hit=141 read=964
+                                                                                 ->  Hash  (cost=35.47..35.47 rows=1547 width=8) (actual time=1.527..1.528 rows=1547 loops=3)
+                                                                                       Buckets: 2048  Batches: 1  Memory Usage: 77kB
+                                                                                       Buffers: shared hit=60
+                                                                                       ->  Seq Scan on course_offering o  (cost=0.00..35.47 rows=1547 width=8) (actual time=0.056..0.675 rows=1547 loops=3)
+                                                                                             Buffers: shared hit=60
+                                                                           ->  Hash  (cost=4.03..4.03 rows=203 width=6) (actual time=0.289..0.290 rows=203 loops=3)
+                                                                                 Buckets: 1024  Batches: 1  Memory Usage: 16kB
+                                                                                 Buffers: shared hit=6
+                                                                                 ->  Seq Scan on course c  (cost=0.00..4.03 rows=203 width=6) (actual time=0.106..0.184 rows=203 loops=3)
+                                                                                       Buffers: shared hit=6
+                                                         ->  Hash  (cost=1.04..1.04 rows=4 width=10) (actual time=62.330..62.330 rows=4 loops=3)
+                                                               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                               Buffers: shared hit=2 read=1
+                                                               ->  Seq Scan on programme p  (cost=0.00..1.04 rows=4 width=10) (actual time=62.287..62.294 rows=4 loops=3)
+                                                                     Buffers: shared hit=2 read=1
+                                             ->  Memoize  (cost=1.09..1.11 rows=1 width=2) (actual time=0.000..0.000 rows=1 loops=360000)
+                                                   Cache Key: r.total_score
+                                                   Cache Mode: binary
+                                                   Hits: 359928  Misses: 72  Evictions: 0  Overflows: 0  Memory Usage: 8kB
+                                                   Buffers: shared hit=72
+                                                   ->  Subquery Scan on gs  (cost=1.08..1.10 rows=1 width=2) (actual time=0.043..0.044 rows=1 loops=72)
+                                                         Buffers: shared hit=72
+                                                         ->  Limit  (cost=1.08..1.09 rows=1 width=6) (actual time=0.040..0.041 rows=1 loops=72)
+                                                               Buffers: shared hit=72
+                                                               ->  Sort  (cost=1.08..1.09 rows=2 width=6) (actual time=0.037..0.037 rows=1 loops=72)
+                                                                     Sort Key: g.min_score DESC
+                                                                     Sort Method: top-N heapsort  Memory: 25kB
+                                                                     Buffers: shared hit=72
+                                                                     ->  Seq Scan on grade_scale g  (cost=0.00..1.07 rows=2 width=6) (actual time=0.012..0.016 rows=4 loops=72)
+                                                                           Filter: (min_score <= r.total_score)
+                                                                           Rows Removed by Filter: 2
+                                                                           Buffers: shared hit=72
+ Planning:
+   Buffers: shared hit=107 read=9
+ Planning Time: 2.183 ms
+ JIT:
+   Functions: 168
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 11.030 ms, Inlining 0.000 ms, Optimization 4.669 ms, Emission 183.731 ms, Total 199.430 ms
+ Execution Time: 1980.406 ms
+
+### Q5 Carry-over list: students who failed courses in 2024/2025 (selective filter)
+                                                                                    QUERY PLAN                                                                                     
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=61480.64..61480.69 rows=20 width=104) (actual time=474.507..480.956 rows=20 loops=1)
+   Buffers: shared hit=31222 read=24905
+   ->  Sort  (cost=61480.64..61492.56 rows=4769 width=104) (actual time=474.505..480.951 rows=20 loops=1)
+         Sort Key: (count(*)) DESC, s.matric_no
+         Sort Method: top-N heapsort  Memory: 28kB
+         Buffers: shared hit=31222 read=24905
+         ->  GroupAggregate  (cost=60679.08..61353.74 rows=4769 width=104) (actual time=466.936..478.861 rows=5979 loops=1)
+               Group Key: s.student_id
+               Buffers: shared hit=31222 read=24905
+               ->  Gather Merge  (cost=60679.08..61234.51 rows=4769 width=40) (actual time=466.920..475.129 rows=6624 loops=1)
+                     Workers Planned: 2
+                     Workers Launched: 2
+                     Buffers: shared hit=31222 read=24905
+                     ->  Sort  (cost=59679.06..59684.03 rows=1987 width=40) (actual time=441.581..441.734 rows=2208 loops=3)
+                           Sort Key: s.student_id, c.course_code
+                           Sort Method: quicksort  Memory: 236kB
+                           Buffers: shared hit=31222 read=24905
+                           Worker 0:  Sort Method: quicksort  Memory: 241kB
+                           Worker 1:  Sort Method: quicksort  Memory: 252kB
+                           ->  Nested Loop  (cost=27065.01..59570.21 rows=1987 width=40) (actual time=166.305..439.693 rows=2208 loops=3)
+                                 Buffers: shared hit=31192 read=24905
+                                 ->  Hash Join  (cost=27064.72..58954.89 rows=1987 width=12) (actual time=166.265..429.594 rows=2208 loops=3)
+                                       Hash Cond: (reg.offering_id = o.offering_id)
+                                       Buffers: shared hit=11481 read=24742
+                                       ->  Parallel Hash Join  (cost=27012.43..58823.16 rows=15895 width=8) (actual time=164.770..425.085 rows=11923 loops=3)
+                                             Hash Cond: (reg.registration_id = r.registration_id)
+                                             Buffers: shared hit=11290 read=24742
+                                             ->  Parallel Seq Scan on registration reg  (cost=0.00..29251.28 rows=975028 width=16) (actual time=0.028..96.253 rows=780023 loops=3)
+                                                   Buffers: shared hit=7414 read=12087
+                                             ->  Parallel Hash  (cost=26813.74..26813.74 rows=15895 width=8) (actual time=164.112..164.113 rows=11923 loops=3)
+                                                   Buckets: 65536  Batches: 1  Memory Usage: 1952kB
+                                                   Buffers: shared hit=3846 read=12655
+                                                   ->  Parallel Seq Scan on result r  (cost=0.00..26813.74 rows=15895 width=8) (actual time=0.081..157.122 rows=11923 loops=3)
+                                                         Filter: (total_score < '40'::numeric)
+                                                         Rows Removed by Filter: 648093
+                                                         Buffers: shared hit=3846 read=12655
+                                       ->  Hash  (cost=49.88..49.88 rows=193 width=12) (actual time=0.957..0.961 rows=192 loops=3)
+                                             Buckets: 1024  Batches: 1  Memory Usage: 17kB
+                                             Buffers: shared hit=97
+                                             ->  Hash Join  (cost=7.68..49.88 rows=193 width=12) (actual time=0.690..0.885 rows=192 loops=3)
+                                                   Hash Cond: (o.course_id = c.course_id)
+                                                   Buffers: shared hit=97
+                                                   ->  Hash Join  (cost=1.11..42.79 rows=193 width=8) (actual time=0.536..0.666 rows=192 loops=3)
+                                                         Hash Cond: (o.session_id = sess.session_id)
+                                                         Buffers: shared hit=91
+                                                         ->  Seq Scan on course_offering o  (cost=0.00..35.47 rows=1547 width=10) (actual time=0.019..0.263 rows=1547 loops=3)
+                                                               Buffers: shared hit=60
+                                                         ->  Hash  (cost=1.10..1.10 rows=1 width=2) (actual time=0.027..0.027 rows=1 loops=3)
+                                                               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                               Buffers: shared hit=3
+                                                               ->  Seq Scan on academic_session sess  (cost=0.00..1.10 rows=1 width=2) (actual time=0.021..0.022 rows=1 loops=3)
+                                                                     Filter: (name = '2024/2025'::bpchar)
+                                                                     Rows Removed by Filter: 7
+                                                                     Buffers: shared hit=3
+                                                   ->  Hash  (cost=4.03..4.03 rows=203 width=12) (actual time=0.130..0.130 rows=203 loops=3)
+                                                         Buckets: 1024  Batches: 1  Memory Usage: 17kB
+                                                         Buffers: shared hit=6
+                                                         ->  Seq Scan on course c  (cost=0.00..4.03 rows=203 width=12) (actual time=0.013..0.054 rows=203 loops=3)
+                                                               Buffers: shared hit=6
+                                 ->  Index Scan using student_pkey on student s  (cost=0.29..0.31 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=6624)
+                                       Index Cond: (student_id = reg.student_id)
+                                       Buffers: shared hit=19711 read=163
+ Planning:
+   Buffers: shared hit=67
+ Planning Time: 4.451 ms
+ Execution Time: 481.075 ms
+
+### Q6 Students above the course average (CTE + scalar subquery)
+                                                                                     QUERY PLAN                                                                                      
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=77388.62..77420.72 rows=10 width=84) (actual time=291.897..301.593 rows=10 loops=1)
+   Buffers: shared hit=24493 read=29572
+   CTE target
+     ->  Nested Loop  (cost=0.28..13.95 rows=1 width=4) (actual time=0.058..0.077 rows=1 loops=1)
+           Buffers: shared hit=5 read=1
+           ->  Seq Scan on academic_session sess  (cost=0.00..1.10 rows=1 width=2) (actual time=0.017..0.017 rows=1 loops=1)
+                 Filter: (name = '2024/2025'::bpchar)
+                 Rows Removed by Filter: 7
+                 Buffers: shared hit=1
+           ->  Nested Loop  (cost=0.28..12.84 rows=1 width=6) (actual time=0.038..0.056 rows=1 loops=1)
+                 Buffers: shared hit=4 read=1
+                 ->  Seq Scan on course c  (cost=0.00..4.54 rows=1 width=4) (actual time=0.011..0.027 rows=1 loops=1)
+                       Filter: ((course_code)::text = 'MTH 410'::text)
+                       Rows Removed by Filter: 202
+                       Buffers: shared hit=2
+                 ->  Index Scan using uq_offering_course_session on course_offering o  (cost=0.28..8.30 rows=1 width=10) (actual time=0.025..0.026 rows=1 loops=1)
+                       Index Cond: ((course_id = c.course_id) AND (session_id = sess.session_id))
+                       Buffers: shared hit=2 read=1
+   InitPlan 2 (returns $3)
+     ->  CTE Scan on target  (cost=0.00..0.02 rows=1 width=4) (actual time=0.062..0.079 rows=1 loops=1)
+           Buffers: shared hit=5 read=1
+   ->  Incremental Sort  (cost=77374.65..79072.67 rows=529 width=84) (actual time=291.896..301.586 rows=10 loops=1)
+         Sort Key: r.total_score DESC, s.matric_no
+         Presorted Key: r.total_score
+         Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 25kB  Peak Memory: 25kB
+         Buffers: shared hit=24493 read=29572
+         ->  Nested Loop  (cost=77349.04..79056.83 rows=529 width=84) (actual time=291.754..301.549 rows=13 loops=1)
+               Buffers: shared hit=24493 read=29572
+               ->  Nested Loop  (cost=77348.75..77557.40 rows=529 width=41) (actual time=291.727..301.439 rows=13 loops=1)
+                     Join Filter: (r.total_score > (avg(r_1.total_score)))
+                     Buffers: shared hit=24454 read=29572
+                     ->  Gather Merge  (cost=38688.92..38873.75 rows=1587 width=9) (actual time=140.136..140.919 rows=13 loops=1)
+                           Workers Planned: 2
+                           Params Evaluated: $3
+                           Workers Launched: 2
+                           Buffers: shared hit=11042 read=15981
+                           ->  Sort  (cost=37688.90..37690.55 rows=661 width=9) (actual time=109.925..109.960 rows=336 loops=3)
+                                 Sort Key: r.total_score DESC
+                                 Sort Method: quicksort  Memory: 59kB
+                                 Buffers: shared hit=11037 read=15980
+                                 Worker 0:  Sort Method: quicksort  Memory: 44kB
+                                 Worker 1:  Sort Method: quicksort  Memory: 44kB
+                                 ->  Nested Loop  (cost=0.43..37657.93 rows=661 width=9) (actual time=0.205..109.240 rows=625 loops=3)
+                                       Buffers: shared hit=11025 read=15978
+                                       ->  Parallel Seq Scan on registration reg  (cost=0.00..31688.85 rows=781 width=12) (actual time=0.143..99.132 rows=625 loops=3)
+                                             Filter: (offering_id = $3)
+                                             Rows Removed by Filter: 779398
+                                             Buffers: shared hit=6015 read=13486
+                                       ->  Index Scan using result_pkey on result r  (cost=0.43..7.64 rows=1 width=13) (actual time=0.015..0.015 rows=1 loops=1875)
+                                             Index Cond: (registration_id = reg.registration_id)
+                                             Buffers: shared hit=5010 read=2492
+                     ->  Materialize  (cost=38659.83..38659.85 rows=1 width=32) (actual time=11.661..12.346 rows=1 loops=13)
+                           Buffers: shared hit=13412 read=13591
+                           ->  Finalize Aggregate  (cost=38659.83..38659.84 rows=1 width=32) (actual time=151.579..160.495 rows=1 loops=1)
+                                 Buffers: shared hit=13412 read=13591
+                                 InitPlan 3 (returns $4)
+                                   ->  CTE Scan on target target_1  (cost=0.00..0.02 rows=1 width=4) (actual time=0.001..0.002 rows=1 loops=1)
+                                 ->  Gather  (cost=38659.59..38659.80 rows=2 width=32) (actual time=150.964..160.471 rows=3 loops=1)
+                                       Workers Planned: 2
+                                       Params Evaluated: $4
+                                       Workers Launched: 2
+                                       Buffers: shared hit=13412 read=13591
+                                       ->  Partial Aggregate  (cost=37659.59..37659.60 rows=1 width=32) (actual time=118.890..118.892 rows=1 loops=3)
+                                             Buffers: shared hit=13412 read=13591
+                                             ->  Nested Loop  (cost=0.43..37657.93 rows=661 width=5) (actual time=0.217..118.222 rows=625 loops=3)
+                                                   Buffers: shared hit=13412 read=13591
+                                                   ->  Parallel Seq Scan on registration reg_1  (cost=0.00..31688.85 rows=781 width=8) (actual time=0.172..110.775 rows=625 loops=3)
+                                                         Filter: (offering_id = $4)
+                                                         Rows Removed by Filter: 779398
+                                                         Buffers: shared hit=5910 read=13591
+                                                   ->  Index Scan using result_pkey on result r_1  (cost=0.43..7.64 rows=1 width=13) (actual time=0.010..0.010 rows=1 loops=1875)
+                                                         Index Cond: (registration_id = reg_1.registration_id)
+                                                         Buffers: shared hit=7502
+               ->  Index Scan using student_pkey on student s  (cost=0.29..2.83 rows=1 width=19) (actual time=0.006..0.006 rows=1 loops=13)
+                     Index Cond: (student_id = reg.student_id)
+                     Buffers: shared hit=39
+ Planning:
+   Buffers: shared hit=60
+ Planning Time: 1.763 ms
+ Execution Time: 301.743 ms
+
+### Q7 Case-insensitive student search by name (expression predicate)
+                                                     QUERY PLAN                                                      
+---------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=2305.25..2305.26 rows=2 width=42) (actual time=21.571..21.575 rows=20 loops=1)
+   Buffers: shared hit=1102 read=3
+   ->  Sort  (cost=2305.25..2305.26 rows=2 width=42) (actual time=21.569..21.571 rows=20 loops=1)
+         Sort Key: matric_no
+         Sort Method: top-N heapsort  Memory: 27kB
+         Buffers: shared hit=1102 read=3
+         ->  Seq Scan on student  (cost=0.00..2305.24 rows=2 width=42) (actual time=0.115..21.394 rows=161 loops=1)
+               Filter: ((lower((last_name)::text) = 'okafor'::text) AND (lower((first_name)::text) = 'ngozi'::text))
+               Rows Removed by Filter: 59851
+               Buffers: shared hit=1102 read=3
+ Planning:
+   Buffers: shared hit=2 read=1
+ Planning Time: 0.102 ms
+ Execution Time: 21.594 ms
+

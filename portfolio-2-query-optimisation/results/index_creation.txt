@@ -1,0 +1,28 @@
+Timing is on.
+CREATE INDEX
+Time: 4184.787 ms (00:04.185)
+CREATE INDEX
+Time: 1787.804 ms (00:01.788)
+CREATE INDEX
+Time: 281.008 ms
+CREATE INDEX
+Time: 123.739 ms
+CREATE INDEX
+Time: 85.527 ms
+ANALYZE
+Time: 215.659 ms
+ANALYZE
+Time: 288.864 ms
+ANALYZE
+Time: 478.034 ms
+--- Index sizes (cost of the strategy) ---
+        index_name        |  table_name  | index_size 
+--------------------------+--------------+------------
+ ix_registration_student  | registration | 91 MB
+ ix_registration_offering | registration | 16 MB
+ ix_result_failed         | result       | 800 kB
+ ix_student_lower_name    | student      | 440 kB
+ ix_student_entry_year    | student      | 424 kB
+(5 rows)
+
+Time: 3.291 ms

@@ -1,0 +1,59 @@
+Timing is on.
+SET
+Time: 0.410 ms
+BEGIN
+Time: 0.220 ms
+INSERT 0 6
+Time: 3.141 ms
+INSERT 0 120
+Time: 7.730 ms
+ setval 
+--------
+    126
+(1 row)
+
+Time: 1.246 ms
+INSERT 0 192
+Time: 7.442 ms
+INSERT 0 1536
+Time: 64.199 ms
+INSERT 0 60000
+Time: 2130.699 ms (00:02.131)
+INSERT 0 2340000
+Time: 76419.613 ms (01:16.420)
+ALTER TABLE
+Time: 2.702 ms
+ setseed 
+---------
+ 
+(1 row)
+
+Time: 5.983 ms
+INSERT 0 1980000
+Time: 63572.133 ms (01:03.572)
+ALTER TABLE
+Time: 0.797 ms
+UPDATE 1350
+Time: 55.368 ms
+COMMIT
+Time: 0.480 ms
+VACUUM
+Time: 2279.869 ms (00:02.280)
+--- Data volume after generation ---
+    table_name    | approx_rows | total_size 
+------------------+-------------+------------
+ registration     |     2340068 | 253 MB
+ result           |     1980047 | 171 MB
+ student          |       60012 | 18 MB
+ course_offering  |        1547 | 368 kB
+ course           |         203 | 80 kB
+ lecturer         |         126 | 96 kB
+ result_audit     |          47 | 64 kB
+ academic_session |           8 | 88 kB
+ grade_scale      |           6 | 88 kB
+ department       |           4 | 88 kB
+ programme        |           4 | 72 kB
+ faculty          |           2 | 88 kB
+(12 rows)
+
+Time: 9.136 ms

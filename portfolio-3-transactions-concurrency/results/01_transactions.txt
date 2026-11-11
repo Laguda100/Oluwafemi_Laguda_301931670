@@ -1,0 +1,111 @@
+CREATE VIEW
+=== A. COMMIT: Dr Ogunleye uploads CSC 201 scores as ONE transaction ===
+   matric_no    | ca_score | exam_score | total_score 
+----------------+----------+------------+-------------
+ CFU/2025/00001 |          |            |            
+ CFU/2025/00002 |          |            |            
+ CFU/2025/00003 |          |            |            
+ CFU/2025/00004 |          |            |            
+
+BEGIN
+INSERT 0 4
+UPDATE 1
+COMMIT
+   matric_no    | ca_score | exam_score | total_score 
+----------------+----------+------------+-------------
+ CFU/2025/00001 |     19.0 |       41.0 |        60.0
+ CFU/2025/00002 |     20.0 |       42.0 |        62.0
+ CFU/2025/00003 |     21.0 |       43.0 |        64.0
+ CFU/2025/00004 |     22.0 |       44.0 |        66.0
+
+ result_status 
+---------------
+ SUBMITTED
+
+=== B. ROLLBACK: an officer adds +5 to the WRONG course, notices, and rolls back ===
+ audit_rows_before 
+-------------------
+                53
+
+BEGIN
+UPDATE 4
+--- inside the transaction (only this session can see the change) ---
+   matric_no    | ca_score | exam_score | total_score 
+----------------+----------+------------+-------------
+ CFU/2025/00001 |     19.0 |       46.0 |        65.0
+ CFU/2025/00002 |     20.0 |       47.0 |        67.0
+ CFU/2025/00003 |     21.0 |       48.0 |        69.0
+ CFU/2025/00004 |     22.0 |       49.0 |        71.0
+
+ROLLBACK
+--- after ROLLBACK ---
+   matric_no    | ca_score | exam_score | total_score 
+----------------+----------+------------+-------------
+ CFU/2025/00001 |     19.0 |       41.0 |        60.0
+ CFU/2025/00002 |     20.0 |       42.0 |        62.0
+ CFU/2025/00003 |     21.0 |       43.0 |        64.0
+ CFU/2025/00004 |     22.0 |       44.0 |        66.0
+
+ audit_rows_after 
+------------------
+               53
+
+=== C. AUTOMATIC ABORT: one invalid score aborts the whole transaction ===
+BEGIN
+UPDATE 1
+psql:/portfolio/portfolio-3-transactions-concurrency/sql/01_transactions.sql:87: ERROR:  new row for relation "result" violates check constraint "result_exam_score_check"
+DETAIL:  Failing row contains (43, 20.0, 95.0, 115.0, 1, 2026-11-11 17:13:30.236971+00, 2026-11-11 17:13:30.255606+00).
+psql:/portfolio/portfolio-3-transactions-concurrency/sql/01_transactions.sql:89: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+   matric_no    | ca_score | exam_score | total_score 
+----------------+----------+------------+-------------
+ CFU/2025/00001 |     19.0 |       41.0 |        60.0
+ CFU/2025/00002 |     20.0 |       42.0 |        62.0
+ CFU/2025/00003 |     21.0 |       43.0 |        64.0
+ CFU/2025/00004 |     22.0 |       44.0 |        66.0
+
+=== D. SAVEPOINT: Blessing Etim registers 3 electives; one is a duplicate ===
+BEGIN
+INSERT 0 1
+SAVEPOINT
+psql:/portfolio/portfolio-3-transactions-concurrency/sql/01_transactions.sql:108: ERROR:  duplicate key value violates unique constraint "uq_registration_student_offering"
+DETAIL:  Key (student_id, offering_id)=(8, 11) already exists.
+ROLLBACK
+INSERT 0 1
+RELEASE
+COMMIT
+ course_code | credit_units 
+-------------+--------------
+ ACC 201     |            3
+ CSC 201     |            3
+ ECO 201     |            3
+ MTH 201     |            3
+
+=== E. ISOLATION LEVELS ===
+ default_transaction_isolation 
+-------------------------------
+ read committed
+
+BEGIN
+ transaction_isolation 
+-----------------------
+ repeatable read
+
+COMMIT
+BEGIN
+ transaction_isolation 
+-----------------------
+ serializable
+
+COMMIT
+=== F. register_course(): business rules enforced inside a transaction ===
+ new_registration_id 
+---------------------
+                  72
+
+psql:/portfolio/portfolio-3-transactions-concurrency/sql/01_transactions.sql:145: ERROR:  Course offering 12 is full (1 of 1 seats taken)
+CONTEXT:  PL/pgSQL function register_course(integer,integer) line 33 at RAISE
+ registered | capacity 
+------------+----------
+          1 |        1
+

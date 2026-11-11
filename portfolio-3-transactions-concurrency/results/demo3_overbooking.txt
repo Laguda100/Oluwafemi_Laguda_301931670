@@ -1,0 +1,29 @@
+﻿===== Demo 3: Overbooking under READ COMMITTED =====
+Variables: serializable=false
+
+----- Session A (stdout) -----
+BEGIN
+[A 17:13:39.644] seats taken 0 of 1 , seat is free, registering student 9
+INSERT 0 1
+COMMIT
+[A 17:13:42.666] finished
+----- Session A (errors) -----
+
+----- Session B (stdout) -----
+BEGIN
+[B 17:13:41.323] seats taken 0 of 1 , seat is free, registering student 10
+INSERT 0 1
+COMMIT
+[B 17:13:41.334] finished
+----- Session B (errors) -----
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       50.0
+ CFU/2025/00002 |       50.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 2 |               1
+

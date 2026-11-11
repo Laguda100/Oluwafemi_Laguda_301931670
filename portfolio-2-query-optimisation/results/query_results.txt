@@ -1,0 +1,200 @@
+### Q1 Student transcript (multi-table JOIN through a view)
+ session_name | semester | course_code |        course_title         | credit_units | ca_score | exam_score | total_score | grade | grade_point 
+--------------+----------+-------------+-----------------------------+--------------+----------+------------+-------------+-------+-------------
+ 2023/2024    |        1 | ACC 110     | Accounting Foundations 1.1  |            3 |     18.0 |       45.0 |        63.0 | B     |           4
+ 2023/2024    |        1 | ACC 111     | Accounting Methods 1.1      |            3 |     13.0 |       57.0 |        70.0 | A     |           5
+ 2023/2024    |        1 | ACC 112     | Accounting Theory 1.1       |            3 |     21.0 |       31.0 |        52.0 | C     |           3
+ 2023/2024    |        1 | ACC 113     | Accounting Applications 1.1 |            3 |     17.0 |       27.0 |        44.0 | E     |           1
+ 2023/2024    |        1 | ACC 114     | Accounting Laboratory 1.1   |            3 |     13.0 |       49.0 |        62.0 | B     |           4
+ 2023/2024    |        1 | ACC 115     | Accounting Seminar 1.1      |            2 |     12.0 |       61.0 |        73.0 | A     |           5
+ 2023/2024    |        2 | ACC 120     | Accounting Foundations 1.2  |            3 |     23.0 |       32.0 |        55.0 | C     |           3
+ 2023/2024    |        2 | ACC 121     | Accounting Methods 1.2      |            3 |      9.0 |       53.0 |        62.0 | B     |           4
+ 2023/2024    |        2 | ACC 122     | Accounting Theory 1.2       |            3 |     17.0 |       35.0 |        52.0 | C     |           3
+ 2023/2024    |        2 | ACC 123     | Accounting Applications 1.2 |            3 |     19.0 |       39.0 |        58.0 | C     |           3
+ 2023/2024    |        2 | ACC 124     | Accounting Laboratory 1.2   |            3 |     17.0 |       36.0 |        53.0 | C     |           3
+ 2023/2024    |        2 | ACC 125     | Accounting Seminar 1.2      |            2 |     22.0 |       26.0 |        48.0 | D     |           2
+ 2024/2025    |        1 | ACC 210     | Accounting Foundations 2.1  |            3 |     22.0 |       52.0 |        74.0 | A     |           5
+ 2024/2025    |        1 | ACC 211     | Accounting Methods 2.1      |            3 |     11.0 |       55.0 |        66.0 | B     |           4
+ 2024/2025    |        1 | ACC 212     | Accounting Theory 2.1       |            3 |     27.0 |       30.0 |        57.0 | C     |           3
+ 2024/2025    |        1 | ACC 213     | Accounting Applications 2.1 |            3 |     13.0 |       28.0 |        41.0 | E     |           1
+ 2024/2025    |        1 | ACC 214     | Accounting Laboratory 2.1   |            3 |     14.0 |       54.0 |        68.0 | B     |           4
+ 2024/2025    |        1 | ACC 215     | Accounting Seminar 2.1      |            2 |     14.0 |       22.0 |        36.0 | F     |           0
+ 2024/2025    |        2 | ACC 220     | Accounting Foundations 2.2  |            3 |     23.0 |       38.0 |        61.0 | B     |           4
+ 2024/2025    |        2 | ACC 221     | Accounting Methods 2.2      |            3 |     22.0 |       46.0 |        68.0 | B     |           4
+ 2024/2025    |        2 | ACC 222     | Accounting Theory 2.2       |            3 |     18.0 |       28.0 |        46.0 | D     |           2
+ 2024/2025    |        2 | ACC 223     | Accounting Applications 2.2 |            3 |     17.0 |       35.0 |        52.0 | C     |           3
+ 2024/2025    |        2 | ACC 224     | Accounting Laboratory 2.2   |            3 |     18.0 |       36.0 |        54.0 | C     |           3
+ 2024/2025    |        2 | ACC 225     | Accounting Seminar 2.2      |            2 |     10.0 |       59.0 |        69.0 | B     |           4
+ 2025/2026    |        1 | ACC 310     | Accounting Foundations 3.1  |            3 |     23.0 |       21.0 |        44.0 | E     |           1
+ 2025/2026    |        1 | ACC 311     | Accounting Methods 3.1      |            3 |     23.0 |       46.0 |        69.0 | B     |           4
+ 2025/2026    |        1 | ACC 312     | Accounting Theory 3.1       |            3 |     17.0 |       38.0 |        55.0 | C     |           3
+ 2025/2026    |        1 | ACC 313     | Accounting Applications 3.1 |            3 |     19.0 |       46.0 |        65.0 | B     |           4
+ 2025/2026    |        1 | ACC 314     | Accounting Laboratory 3.1   |            3 |     24.0 |       43.0 |        67.0 | B     |           4
+ 2025/2026    |        1 | ACC 315     | Accounting Seminar 3.1      |            2 |     13.0 |       44.0 |        57.0 | C     |           3
+ 2025/2026    |        2 | ACC 320     | Accounting Foundations 3.2  |            3 |     18.0 |       50.0 |        68.0 | B     |           4
+ 2025/2026    |        2 | ACC 321     | Accounting Methods 3.2      |            3 |     23.0 |       36.0 |        59.0 | C     |           3
+ 2025/2026    |        2 | ACC 322     | Accounting Theory 3.2       |            3 |      9.0 |       53.0 |        62.0 | B     |           4
+ 2025/2026    |        2 | ACC 323     | Accounting Applications 3.2 |            3 |     22.0 |       26.0 |        48.0 | D     |           2
+ 2025/2026    |        2 | ACC 324     | Accounting Laboratory 3.2   |            3 |     18.0 |       40.0 |        58.0 | C     |           3
+ 2025/2026    |        2 | ACC 325     | Accounting Seminar 3.2      |            2 |     20.0 |       49.0 |        69.0 | B     |           4
+
+### Q2 Course result sheet (JOIN + LATERAL grade lookup)
+   matric_no    |     student     | ca_score | exam_score | total_score | grade 
+----------------+-----------------+----------+------------+-------------+-------
+ CFU/2022/00100 | Okafor, Ngozi   |     22.0 |       39.0 |        61.0 | B
+ CFU/2022/00104 | Okafor, Tunde   |     19.0 |       49.0 |        68.0 | B
+ CFU/2022/00108 | Okafor, Aisha   |     18.0 |       61.0 |        79.0 | A
+ CFU/2022/00112 | Okafor, Emeka   |     16.0 |       33.0 |        49.0 | D
+ CFU/2022/00116 | Okafor, Fatima  |     21.0 |       28.0 |        49.0 | D
+ CFU/2022/00120 | Okafor, Seun    |     15.0 |       37.0 |        52.0 | C
+ CFU/2022/00124 | Okafor, Chioma  |     15.0 |       28.0 |        43.0 | E
+ CFU/2022/00128 | Okafor, Ibrahim |     19.0 |       26.0 |        45.0 | D
+ CFU/2022/00132 | Okafor, Funke   |     10.0 |       49.0 |        59.0 | C
+ CFU/2022/00136 | Okafor, Obinna  |     22.0 |       44.0 |        66.0 | B
+ CFU/2022/00140 | Okafor, Zainab  |     19.0 |       37.0 |        56.0 | C
+ CFU/2022/00144 | Okafor, Femi    |     20.0 |       49.0 |        69.0 | B
+ CFU/2022/00148 | Okafor, Adaeze  |     24.0 |       36.0 |        60.0 | B
+ CFU/2022/00152 | Okafor, Musa    |     23.0 |       43.0 |        66.0 | B
+ CFU/2022/00156 | Okafor, Bisi    |     23.0 |       34.0 |        57.0 | C
+ CFU/2022/00160 | Okafor, Chinedu |     16.0 |       57.0 |        73.0 | A
+ CFU/2022/00164 | Okafor, Halima  |     22.0 |       50.0 |        72.0 | A
+ CFU/2022/00168 | Okafor, Kayode  |     18.0 |       34.0 |        52.0 | C
+ CFU/2022/00172 | Okafor, Amaka   |     15.0 |       48.0 |        63.0 | B
+ CFU/2022/00176 | Okafor, Yusuf   |     20.0 |       48.0 |        68.0 | B
+ CFU/2022/00180 | Adeyemi, Ngozi  |     22.0 |       44.0 |        66.0 | B
+ CFU/2022/00184 | Adeyemi, Tunde  |     21.0 |       56.0 |        77.0 | A
+ CFU/2022/00188 | Adeyemi, Aisha  |     13.0 |       38.0 |        51.0 | C
+ CFU/2022/00192 | Adeyemi, Emeka  |     19.0 |       35.0 |        54.0 | C
+ CFU/2022/00196 | Adeyemi, Fatima |     19.0 |       33.0 |        52.0 | C
+
+### Q3 Departmental pass-rate report (GROUP BY + FILTER aggregates)
+ course_code | candidates | passed | pass_rate_pct | avg_score 
+-------------+------------+--------+---------------+-----------
+ CSC 125     |       1875 |   1827 |          97.4 |      60.3
+ CSC 213     |       1875 |   1826 |          97.4 |      60.5
+ CSC 112     |       1875 |   1830 |          97.6 |      60.4
+ CSC 220     |       1875 |   1832 |          97.7 |      60.0
+ CSC 422     |       1875 |   1832 |          97.7 |      60.1
+ CSC 425     |       1875 |   1832 |          97.7 |      60.7
+ CSC 315     |       1875 |   1834 |          97.8 |      60.6
+ CSC 411     |       1875 |   1834 |          97.8 |      60.7
+ CSC 113     |       1875 |   1835 |          97.9 |      60.9
+ CSC 224     |       1875 |   1836 |          97.9 |      60.5
+ CSC 110     |       1875 |   1838 |          98.0 |      60.1
+ CSC 123     |       1875 |   1838 |          98.0 |      60.7
+ CSC 222     |       1875 |   1838 |          98.0 |      60.3
+ CSC 313     |       1875 |   1838 |          98.0 |      60.3
+ CSC 322     |       1875 |   1838 |          98.0 |      60.8
+ CSC 423     |       1875 |   1837 |          98.0 |      60.4
+ CSC 124     |       1875 |   1839 |          98.1 |      60.5
+ CSC 215     |       1875 |   1840 |          98.1 |      60.5
+ CSC 310     |       1875 |   1839 |          98.1 |      60.7
+ CSC 321     |       1875 |   1839 |          98.1 |      60.0
+ CSC 410     |       1875 |   1840 |          98.1 |      60.3
+ CSC 121     |       1875 |   1841 |          98.2 |      60.1
+ CSC 122     |       1875 |   1841 |          98.2 |      60.7
+ CSC 221     |       1875 |   1841 |          98.2 |      60.4
+ CSC 314     |       1875 |   1842 |          98.2 |      60.4
+ CSC 320     |       1875 |   1841 |          98.2 |      60.7
+ CSC 323     |       1875 |   1841 |          98.2 |      60.6
+ CSC 325     |       1875 |   1841 |          98.2 |      60.8
+ CSC 412     |       1875 |   1842 |          98.2 |      60.5
+ CSC 413     |       1875 |   1842 |          98.2 |      60.5
+ CSC 415     |       1875 |   1841 |          98.2 |      60.9
+ CSC 111     |       1875 |   1843 |          98.3 |      60.5
+ CSC 211     |       1875 |   1844 |          98.3 |      60.4
+ CSC 212     |       1875 |   1844 |          98.3 |      60.2
+ CSC 223     |       1875 |   1843 |          98.3 |      60.4
+ CSC 421     |       1875 |   1843 |          98.3 |      60.6
+ CSC 120     |       1875 |   1845 |          98.4 |      60.4
+ CSC 225     |       1875 |   1845 |          98.4 |      60.8
+ CSC 311     |       1875 |   1845 |          98.4 |      60.7
+ CSC 324     |       1875 |   1845 |          98.4 |      60.9
+ CSC 414     |       1875 |   1845 |          98.4 |      60.6
+ CSC 114     |       1875 |   1846 |          98.5 |      60.4
+ CSC 210     |       1875 |   1846 |          98.5 |      60.0
+ CSC 115     |       1875 |   1848 |          98.6 |      60.4
+ CSC 312     |       1875 |   1849 |          98.6 |      60.7
+ CSC 420     |       1875 |   1849 |          98.6 |      60.4
+ CSC 424     |       1875 |   1848 |          98.6 |      60.5
+ CSC 214     |       1875 |   1852 |          98.8 |      60.5
+
+### Q4 Top 3 graduates per programme, 2022 cohort (CTE + window functions)
+ programme | programme_rank |   matric_no    | cgpa | programme_avg_cgpa 
+-----------+----------------+----------------+------+--------------------
+ BSC-ACC   |              1 | CFU/2022/01022 | 4.01 |               3.51
+ BSC-ACC   |              1 | CFU/2022/07530 | 4.01 |               3.51
+ BSC-ACC   |              3 | CFU/2022/03734 | 3.98 |               3.51
+ BSC-ACC   |              3 | CFU/2022/06846 | 3.98 |               3.51
+ BSC-CSC   |              1 | CFU/2022/02288 | 4.10 |               3.51
+ BSC-CSC   |              2 | CFU/2022/02836 | 4.02 |               3.51
+ BSC-CSC   |              3 | CFU/2022/02460 | 4.01 |               3.51
+ BSC-ECO   |              1 | CFU/2022/04335 | 4.01 |               3.50
+ BSC-ECO   |              2 | CFU/2022/03043 | 4.00 |               3.50
+ BSC-ECO   |              3 | CFU/2022/04571 | 3.99 |               3.50
+ BSC-MTH   |              1 | CFU/2022/04197 | 4.07 |               3.51
+ BSC-MTH   |              2 | CFU/2022/07209 | 4.04 |               3.51
+ BSC-MTH   |              3 | CFU/2022/04585 | 4.01 |               3.51
+
+### Q5 Carry-over list: students who failed courses in 2024/2025 (selective filter)
+   matric_no    |  student_name   | failed_courses |         carry_over_courses         
+----------------+-----------------+----------------+------------------------------------
+ CFU/2022/00955 | Musa Adebayo    |              4 | ECO 311, ECO 313, ECO 315, ECO 324
+ CFU/2021/01089 | Ibrahim Chukwu  |              3 | MTH 411, MTH 414, MTH 420
+ CFU/2021/01376 | Yusuf Obi       |              3 | CSC 414, CSC 420, CSC 422
+ CFU/2021/01804 | Chioma Adeyemi  |              3 | CSC 415, CSC 421, CSC 423
+ CFU/2021/03496 | Obinna Bello    |              3 | CSC 410, CSC 411, CSC 425
+ CFU/2021/05567 | Chioma Ibrahim  |              3 | ECO 410, ECO 413, ECO 421
+ CFU/2021/05763 | Chinedu Adebayo |              3 | ECO 413, ECO 415, ECO 420
+ CFU/2021/06893 | Amaka Ogunleye  |              3 | MTH 411, MTH 415, MTH 420
+ CFU/2022/00102 | Ngozi Okafor    |              3 | ACC 311, ACC 322, ACC 325
+ CFU/2022/01857 | Yusuf Adeyemi   |              3 | MTH 312, MTH 320, MTH 324
+ CFU/2022/01865 | Tunde Bello     |              3 | MTH 311, MTH 313, MTH 315
+ CFU/2022/02560 | Chinedu Adebayo |              3 | CSC 320, CSC 324, CSC 325
+ CFU/2022/03031 | Adaeze Ajayi    |              3 | ECO 313, ECO 314, ECO 324
+ CFU/2022/03700 | Ngozi Abubakar  |              3 | CSC 313, CSC 315, CSC 325
+ CFU/2022/05538 | Yusuf Balogun   |              3 | ACC 311, ACC 315, ACC 324
+ CFU/2022/05603 | Chinedu Ibrahim |              3 | ECO 314, ECO 323, ECO 324
+ CFU/2022/05634 | Emeka Okonkwo   |              3 | ACC 310, ACC 315, ACC 321
+ CFU/2022/05777 | Yusuf Adebayo   |              3 | MTH 311, MTH 315, MTH 324
+ CFU/2022/05872 | Emeka Chukwu    |              3 | CSC 313, CSC 322, CSC 323
+ CFU/2022/06225 | Femi Ajayi      |              3 | MTH 311, MTH 312, MTH 325
+
+### Q6 Students above the course average (CTE + scalar subquery)
+   matric_no    | total_score | class_average | above_average_by 
+----------------+-------------+---------------+------------------
+ CFU/2021/01845 |        90.0 |          60.4 |             29.6
+ CFU/2021/01913 |        90.0 |          60.4 |             29.6
+ CFU/2021/03673 |        90.0 |          60.4 |             29.6
+ CFU/2021/06769 |        89.0 |          60.4 |             28.6
+ CFU/2021/03465 |        88.0 |          60.4 |             27.6
+ CFU/2021/04589 |        88.0 |          60.4 |             27.6
+ CFU/2021/05789 |        88.0 |          60.4 |             27.6
+ CFU/2021/00557 |        87.0 |          60.4 |             26.6
+ CFU/2021/03713 |        86.0 |          60.4 |             25.6
+ CFU/2021/04657 |        86.0 |          60.4 |             25.6
+
+### Q7 Case-insensitive student search by name (expression predicate)
+ student_id |   matric_no    | first_name | last_name | entry_year |  status   
+------------+----------------+------------+-----------+------------+-----------
+         13 | CFU/2019/00100 | Ngozi      | Okafor    |       2019 | GRADUATED
+         21 | CFU/2019/00101 | Ngozi      | Okafor    |       2019 | GRADUATED
+         29 | CFU/2019/00102 | Ngozi      | Okafor    |       2019 | GRADUATED
+         37 | CFU/2019/00103 | Ngozi      | Okafor    |       2019 | GRADUATED
+      12813 | CFU/2019/01700 | Ngozi      | Okafor    |       2019 | GRADUATED
+      12821 | CFU/2019/01701 | Ngozi      | Okafor    |       2019 | GRADUATED
+      12829 | CFU/2019/01702 | Ngozi      | Okafor    |       2019 | GRADUATED
+      12837 | CFU/2019/01703 | Ngozi      | Okafor    |       2019 | GRADUATED
+      25613 | CFU/2019/03300 | Ngozi      | Okafor    |       2019 | GRADUATED
+      25621 | CFU/2019/03301 | Ngozi      | Okafor    |       2019 | GRADUATED
+      25629 | CFU/2019/03302 | Ngozi      | Okafor    |       2019 | GRADUATED
+      25637 | CFU/2019/03303 | Ngozi      | Okafor    |       2019 | GRADUATED
+      38413 | CFU/2019/04900 | Ngozi      | Okafor    |       2019 | GRADUATED
+      38421 | CFU/2019/04901 | Ngozi      | Okafor    |       2019 | GRADUATED
+      38429 | CFU/2019/04902 | Ngozi      | Okafor    |       2019 | GRADUATED
+      38437 | CFU/2019/04903 | Ngozi      | Okafor    |       2019 | GRADUATED
+      51213 | CFU/2019/06500 | Ngozi      | Okafor    |       2019 | GRADUATED
+      51221 | CFU/2019/06501 | Ngozi      | Okafor    |       2019 | GRADUATED
+      51229 | CFU/2019/06502 | Ngozi      | Okafor    |       2019 | GRADUATED
+      51237 | CFU/2019/06503 | Ngozi      | Okafor    |       2019 | GRADUATED
+

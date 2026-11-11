@@ -1,0 +1,30 @@
+﻿===== Demo 8: Non-repeatable read under READ COMMITTED =====
+Variables: rr=false
+
+----- Session A (stdout) -----
+BEGIN
+ transaction_isolation 
+-----------------------
+ read committed
+(1 row)
+
+[A 17:14:00.862] first read = 50.0
+[A 17:14:03.882] second read = 60.0
+COMMIT
+----- Session A (errors) -----
+
+----- Session B (stdout) -----
+UPDATE 1
+[B 17:14:02.445] exam_score +10 committed
+----- Session B (errors) -----
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       60.0
+ CFU/2025/00002 |       50.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 0 |               1
+

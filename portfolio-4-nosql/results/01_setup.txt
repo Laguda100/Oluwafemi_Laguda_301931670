@@ -1,0 +1,8 @@
+Database crestfield_nosql recreated
+
+Collections and indexes:
+  activity_events: _id_, ix_events_student_type_ts, ttl_events_180d
+  course_feedback: _id_, tx_feedback_comment, ix_feedback_course_session
+  courses: _id_, ix_courses_prerequisites
+  portal_sessions: _id_, ttl_sessions
+  students: _id_, ux_students_email, ix_students_programme_cgpa, ix_students_course_code

@@ -1,0 +1,576 @@
+
+=== Q1 READ: full transcript in ONE document read (SQL needs a 6-table join) ===
+{
+  _id: 'CFU/2025/00001',
+  cgpa: 4.5,
+  name: {
+    last: 'Adeleke',
+    first: 'Oluwaseun',
+    other: 'Tobi'
+  },
+  programme: {
+    name: 'B.Sc. Computer Science'
+  },
+  transcript: [
+    {
+      gpa: 4,
+      courses: [
+        {
+          ca: 24,
+          code: 'CSC 101',
+          exam: 38,
+          grade: 'B',
+          title: 'Introduction to Computing Sciences',
+          total: 62,
+          units: 3,
+          gradePoint: 4
+        },
+        {
+          ca: 14,
+          code: 'MTH 101',
+          exam: 48,
+          grade: 'B',
+          title: 'Elementary Mathematics I',
+          total: 62,
+          units: 3,
+          gradePoint: 4
+        }
+      ],
+      session: '2025/2026',
+      semester: 1
+    },
+    {
+      gpa: 5,
+      courses: [
+        {
+          ca: 27,
+          code: 'CSC 102',
+          exam: 43,
+          grade: 'A',
+          title: 'Introduction to Programming',
+          total: 70,
+          units: 3,
+          gradePoint: 5
+        },
+        {
+          ca: 17,
+          code: 'MTH 102',
+          exam: 53,
+          grade: 'A',
+          title: 'Elementary Mathematics II',
+          total: 70,
+          units: 3,
+          gradePoint: 5
+        }
+      ],
+      session: '2025/2026',
+      semester: 2
+    }
+  ],
+  classOfDegree: 'First Class'
+}
+
+=== Q2 READ: students who scored below 50 in MTH 101 ($elemMatch on embedded array) ===
+[
+  {
+    _id: 'CFU/2025/00007',
+    name: {
+      last: 'Nnamdi',
+      first: 'Ifeanyi'
+    },
+    programme: {
+      code: 'BSC-MTH'
+    }
+  },
+  {
+    _id: 'CFU/2025/00008',
+    name: {
+      last: 'Etim',
+      first: 'Blessing'
+    },
+    programme: {
+      code: 'BSC-ACC'
+    }
+  }
+]
+
+=== Q3 UPDATE: Senate approves CSC 203 (2026/2027) -> $push semester, recompute CGPA ===
+Before: {"cgpa":4.5}
+matched=1 modified=1
+After:  {"cgpa":4.2}
+
+=== Q4 AGGREGATE: CGPA ranking per programme ($setWindowFields = SQL window functions) ===
+{
+  _id: 'CFU/2025/00009',
+  cgpa: 4.63,
+  classOfDegree: 'First Class',
+  programmeRank: 1,
+  name: 'Yusuf Garba',
+  programme: 'BSC-ACC',
+  programmeAvg: 4.13
+}
+{
+  _id: 'CFU/2025/00010',
+  cgpa: 4.25,
+  classOfDegree: 'Second Class Upper',
+  programmeRank: 2,
+  name: 'Folake Ogundipe',
+  programme: 'BSC-ACC',
+  programmeAvg: 4.13
+}
+{
+  _id: 'CFU/2025/00008',
+  cgpa: 3.5,
+  classOfDegree: 'Second Class Upper',
+  programmeRank: 3,
+  name: 'Blessing Etim',
+  programme: 'BSC-ACC',
+  programmeAvg: 4.13
+}
+{
+  _id: 'CFU/2025/00002',
+  cgpa: 4.75,
+  classOfDegree: 'First Class',
+  programmeRank: 1,
+  name: 'Ngozi Okafor',
+  programme: 'BSC-CSC',
+  programmeAvg: 3.86
+}
+{
+  _id: 'CFU/2025/00001',
+  cgpa: 4.2,
+  classOfDegree: 'First Class',
+  programmeRank: 2,
+  name: 'Oluwaseun Adeleke',
+  programme: 'BSC-CSC',
+  programmeAvg: 3.86
+}
+{
+  _id: 'CFU/2025/00003',
+  cgpa: 3.5,
+  classOfDegree: 'Second Class Upper',
+  programmeRank: 3,
+  name: 'Musa Abdullahi',
+  programme: 'BSC-CSC',
+  programmeAvg: 3.86
+}
+{
+  _id: 'CFU/2025/00004',
+  cgpa: 3,
+  classOfDegree: 'Second Class Lower',
+  programmeRank: 4,
+  name: 'Aisha Bello',
+  programme: 'BSC-CSC',
+  programmeAvg: 3.86
+}
+{
+  _id: 'CFU/2025/00011',
+  cgpa: 4,
+  classOfDegree: 'Second Class Upper',
+  programmeRank: 1,
+  name: 'Kelechi Uche',
+  programme: 'BSC-ECO',
+  programmeAvg: 3.62
+}
+{
+  _id: 'CFU/2025/00012',
+  cgpa: 3.25,
+  classOfDegree: 'Second Class Lower',
+  programmeRank: 2,
+  name: 'Zainab Lawal',
+  programme: 'BSC-ECO',
+  programmeAvg: 3.62
+}
+{
+  _id: 'CFU/2025/00006',
+  cgpa: 5,
+  classOfDegree: 'First Class',
+  programmeRank: 1,
+  name: 'Temitope Ajayi',
+  programme: 'BSC-MTH',
+  programmeAvg: 4.22
+}
+{
+  _id: 'CFU/2025/00005',
+  cgpa: 4.33,
+  classOfDegree: 'Second Class Upper',
+  programmeRank: 2,
+  name: 'Chukwuemeka Obi',
+  programme: 'BSC-MTH',
+  programmeAvg: 4.22
+}
+{
+  _id: 'CFU/2025/00007',
+  cgpa: 3.33,
+  classOfDegree: 'Second Class Lower',
+  programmeRank: 3,
+  name: 'Ifeanyi Nnamdi',
+  programme: 'BSC-MTH',
+  programmeAvg: 4.22
+}
+
+=== Q5 AGGREGATE: pass rate per course per session ($unwind nested arrays + $group) ===
+{
+  candidates: 5,
+  passed: 5,
+  session: '2025/2026',
+  course: 'ACC 101',
+  passRatePct: 100,
+  avgScore: 68.8
+}
+{
+  candidates: 7,
+  passed: 7,
+  session: '2025/2026',
+  course: 'CSC 101',
+  passRatePct: 100,
+  avgScore: 66.9
+}
+{
+  candidates: 4,
+  passed: 4,
+  session: '2025/2026',
+  course: 'CSC 102',
+  passRatePct: 100,
+  avgScore: 69.5
+}
+{
+  candidates: 5,
+  passed: 5,
+  session: '2025/2026',
+  course: 'ECO 101',
+  passRatePct: 100,
+  avgScore: 64.4
+}
+{
+  candidates: 12,
+  passed: 12,
+  session: '2025/2026',
+  course: 'MTH 101',
+  passRatePct: 100,
+  avgScore: 65.2
+}
+{
+  candidates: 7,
+  passed: 7,
+  session: '2025/2026',
+  course: 'MTH 102',
+  passRatePct: 100,
+  avgScore: 68.6
+}
+{
+  candidates: 1,
+  passed: 1,
+  session: '2026/2027',
+  course: 'CSC 203',
+  passRatePct: 100,
+  avgScore: 56
+}
+
+=== Q6 GRAPH: full prerequisite chain of CSC 410 ($graphLookup, recursive) ===
+{
+  _id: 'CSC 410',
+  title: 'Advanced Database Systems',
+  chain: [
+    {
+      course: 'CSC 313',
+      depth: Long('0')
+    },
+    {
+      course: 'MTH 201',
+      depth: Long('0')
+    },
+    {
+      course: 'CSC 201',
+      depth: Long('1')
+    },
+    {
+      course: 'CSC 203',
+      depth: Long('1')
+    },
+    {
+      course: 'MTH 102',
+      depth: Long('1')
+    },
+    {
+      course: 'CSC 102',
+      depth: Long('2')
+    },
+    {
+      course: 'MTH 101',
+      depth: Long('2')
+    },
+    {
+      course: 'CSC 101',
+      depth: Long('3')
+    }
+  ]
+}
+Courses that CSC 102 unlocks directly: CSC 201, CSC 203
+
+=== Q7 EVENTS: activity by type (last 30 days) and daily active students (last 7 days) ===
+{
+  _id: 'material_download',
+  events: 5878,
+  distinctStudents: 12
+}
+{
+  _id: 'login',
+  events: 4776,
+  distinctStudents: 12
+}
+{
+  _id: 'quiz_attempt',
+  events: 3336,
+  distinctStudents: 12
+}
+{
+  _id: 'forum_post',
+  events: 2558,
+  distinctStudents: 12
+}
+{
+  events: 163,
+  day: '2026-11-04',
+  activeStudents: 12
+}
+{
+  events: 563,
+  day: '2026-11-05',
+  activeStudents: 12
+}
+{
+  events: 557,
+  day: '2026-11-06',
+  activeStudents: 12
+}
+{
+  events: 529,
+  day: '2026-11-07',
+  activeStudents: 12
+}
+{
+  events: 568,
+  day: '2026-11-08',
+  activeStudents: 12
+}
+{
+  events: 542,
+  day: '2026-11-09',
+  activeStudents: 12
+}
+{
+  events: 519,
+  day: '2026-11-10',
+  activeStudents: 12
+}
+{
+  events: 377,
+  day: '2026-11-11',
+  activeStudents: 12
+}
+
+=== Q8 POLYMORPHIC: quiz performance per course (only quiz_attempt docs have score fields) ===
+{
+  _id: 'ACC 201',
+  attempts: 1996,
+  avgPct: 64.4,
+  avgMinutes: 16.1
+}
+{
+  _id: 'CSC 201',
+  attempts: 1113,
+  avgPct: 64.6,
+  avgMinutes: 16
+}
+{
+  _id: 'CSC 203',
+  attempts: 2337,
+  avgPct: 65,
+  avgMinutes: 16.2
+}
+{
+  _id: 'ECO 201',
+  attempts: 2036,
+  avgPct: 65.5,
+  avgMinutes: 16.1
+}
+{
+  _id: 'MTH 201',
+  attempts: 2372,
+  avgPct: 66.3,
+  avgMinutes: 15.8
+}
+
+=== Q9 FEEDBACK: text search + average of whatever questions each course asked ===
+{
+  courseCode: 'MTH 101',
+  comment: 'The practical lab sessions helped me understand the topics',
+  relevance: 1.1666666666666667
+}
+{
+  courseCode: 'MTH 101',
+  comment: 'The practical lab sessions helped me understand the topics',
+  relevance: 1.1666666666666667
+}
+{
+  courseCode: 'CSC 102',
+  comment: 'The practical lab sessions helped me understand the topics',
+  relevance: 1.1666666666666667
+}
+{
+  courseCode: 'CSC 102',
+  comment: 'The practical lab sessions helped me understand the topics',
+  relevance: 1.1666666666666667
+}
+{
+  courseCode: 'ECO 101',
+  comment: 'The practical lab sessions helped me understand the topics',
+  relevance: 1.1666666666666667
+}
+{
+  _id: 'ACC 101',
+  questions: [
+    {
+      q: 'clarity',
+      avg: 2.37,
+      n: 19
+    },
+    {
+      q: 'materials',
+      avg: 2.68,
+      n: 19
+    },
+    {
+      q: 'realWorldExamples',
+      avg: 3.47,
+      n: 19
+    }
+  ]
+}
+{
+  _id: 'CSC 101',
+  questions: [
+    {
+      q: 'clarity',
+      avg: 2.85,
+      n: 20
+    },
+    {
+      q: 'materials',
+      avg: 2.65,
+      n: 20
+    },
+    {
+      q: 'pace',
+      avg: 2.5,
+      n: 20
+    }
+  ]
+}
+{
+  _id: 'CSC 102',
+  questions: [
+    {
+      q: 'clarity',
+      avg: 2.89,
+      n: 19
+    },
+    {
+      q: 'labEquipment',
+      avg: 2.63,
+      n: 19
+    },
+    {
+      q: 'labSupport',
+      avg: 3.16,
+      n: 19
+    },
+    {
+      q: 'pace',
+      avg: 2.68,
+      n: 19
+    }
+  ]
+}
+{
+  _id: 'ECO 101',
+  questions: [
+    {
+      q: 'clarity',
+      avg: 2.32,
+      n: 19
+    },
+    {
+      q: 'materials',
+      avg: 3.11,
+      n: 19
+    },
+    {
+      q: 'realWorldExamples',
+      avg: 3.47,
+      n: 19
+    }
+  ]
+}
+{
+  _id: 'MTH 101',
+  questions: [
+    {
+      q: 'clarity',
+      avg: 3.12,
+      n: 17
+    },
+    {
+      q: 'pace',
+      avg: 2.94,
+      n: 17
+    },
+    {
+      q: 'tutorials',
+      avg: 3.35,
+      n: 17
+    }
+  ]
+}
+{
+  _id: 'MTH 102',
+  questions: [
+    {
+      q: 'clarity',
+      avg: 3.36,
+      n: 22
+    },
+    {
+      q: 'pace',
+      avg: 3.05,
+      n: 22
+    },
+    {
+      q: 'tutorials',
+      avg: 2.45,
+      n: 22
+    }
+  ]
+}
+
+=== Q10 KEY-VALUE: session lookup by token, sliding expiry ===
+{
+  _id: 'tok_1fa7_CFU202500001',
+  studentId: 'CFU/2025/00001',
+  roles: [
+    'student'
+  ],
+  createdAt: ISODate('2026-11-11T17:14:36.791Z'),
+  expiresAt: ISODate('2026-11-11T17:44:36.791Z')
+}
+Lookup by key uses plan stage: IDHACK  (IDHACK = direct _id lookup)
+
+=== Q11 INDEX ANALYSIS: latest 10 quiz attempts of one student, index vs collection scan ===
+With ix_events_*:      plan=LIMIT <- FETCH <- IXSCAN
+                       keysExamined=10 docsExamined=10 returned=10 timeMs=3
+Forced COLLSCAN:       plan=SORT <- COLLSCAN
+                       keysExamined=0 docsExamined=50000 returned=10 timeMs=62
+
+=== Q12 DELETE: purge login events older than 60 days (TTL would do this at 180 days) ===
+deletedCount=4972; remaining events=45028

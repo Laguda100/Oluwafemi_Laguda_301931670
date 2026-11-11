@@ -1,0 +1,186 @@
+﻿Portfolio 5 replication report - 2026-11-11 18:28:27
+
+===== Replica base backup log =====
+[replica] waiting for the primary to accept TCP connections...
+[replica] taking base backup from pg-primary
+pg_basebackup: initiating base backup, waiting for checkpoint to complete
+pg_basebackup: checkpoint completed
+pg_basebackup: write-ahead log start point: 0/2000028 on timeline 1
+pg_basebackup: starting background WAL receiver
+31512/31512 kB (100%), 0/1 tablespace (...ostgresql/data/global/pg_control)
+31512/31512 kB (100%), 1/1 tablespace                                         
+pg_basebackup: write-ahead log end point: 0/2000100
+pg_basebackup: waiting for background process to finish streaming ...
+pg_basebackup: syncing data to disk ...
+pg_basebackup: renaming backup_manifest.tmp to backup_manifest
+pg_basebackup: base backup completed
+[replica] base backup complete
+2026-11-11 17:28:39.820 UTC [1] LOG:  starting PostgreSQL 16.4 (Debian 16.4-1.pgdg120+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+
+===== 2a. Primary: pg_stat_replication / slots =====
+Expanded display is on.
+-[ RECORD 1 ]----+----------------
+application_name | replica1
+client_addr      | 172.19.0.3
+state            | streaming
+sync_state       | async
+sent_lsn         | 0/302FC80
+write_lsn        | 0/302FC80
+flush_lsn        | 0/302FC80
+replay_lsn       | 0/302FC80
+write_lag        | 00:00:00.052697
+flush_lag        | 00:00:00.063164
+replay_lag       | 00:00:00.065482
+
+Expanded display is off.
+   slot_name   | slot_type | active | restart_lsn 
+---------------+-----------+--------+-------------
+ replica1_slot | physical  | t      | 0/302FC80
+
+ is_standby | current_wal_lsn | synchronous_standby_names 
+------------+-----------------+---------------------------
+ f          | 0/302FC80       | 
+
+
+===== 2b. Replica: pg_stat_wal_receiver =====
+ is_standby 
+------------
+ t
+
+Expanded display is on.
+-[ RECORD 1 ]---------+------------------------------
+status                | streaming
+sender_host           | pg-primary
+sender_port           | 5432
+slot_name             | replica1_slot
+written_lsn           | 0/302FCC0
+flushed_lsn           | 0/302FCC0
+latest_end_lsn        | 0/302FCC0
+last_msg_receipt_time | 2026-11-11 17:28:44.075187+00
+
+Expanded display is off.
+ replayed_lsn | time_since_last_replayed_commit 
+--------------+---------------------------------
+ 0/302FCC0    | 00:00:00.821709
+
+
+===== 3. Write on primary, read on replica =====
+Primary INSERT:
+   matric_no    |          created_at           
+----------------+-------------------------------
+ CFU/2026/07001 | 2026-11-11 17:28:44.879676+00
+(1 row)
+
+INSERT 0 1
+
+Row visible on replica after 299 ms (includes ~100-200 ms docker exec overhead per poll)
+
+Replica read:
+   matric_no    | first_name  | last_name |          created_at           
+----------------+-------------+-----------+-------------------------------
+ CFU/2026/07001 | Replication | Test      | 2026-11-11 17:28:44.879676+00
+(1 row)
+
+
+Lag reported by the primary:
+ application_name |    write_lag    |   flush_lag    |   replay_lag    
+------------------+-----------------+----------------+-----------------
+ replica1         | 00:00:00.000367 | 00:00:00.00214 | 00:00:00.002535
+(1 row)
+
+
+===== 4. Replica is read-only =====
+ is_standby 
+------------
+ t
+(1 row)
+
+ERROR:  cannot execute INSERT in a read-only transaction
+
+===== 5. Partitioned tables replicated to the replica =====
+        partition         |  rows  
+--------------------------+--------
+ result_history_2019_2022 | 200000
+ result_history_2023      |  50000
+ result_history_2024      |  50000
+ result_history_2025      |  50000
+ result_history_2026      |  50000
+(5 rows)
+
+        shard        | rows  
+---------------------+-------
+ activity_log_shard0 | 49970
+ activity_log_shard1 | 50121
+ activity_log_shard2 | 50074
+ activity_log_shard3 | 49835
+(4 rows)
+
+
+===== 6a. Synchronous replication ON (replica up) =====
+ application_name |   state   | sync_state 
+------------------+-----------+------------
+ replica1         | streaming | sync
+(1 row)
+
+Commit time with synchronous replica: 387 ms (includes docker exec overhead)
+
+===== 6b. Synchronous ON, replica DOWN: commit blocks (consistency over availability) =====
+Session still waiting for the standby after 5 s:
+ pid | state  | wait_event | waiting_s |                                     query                                     
+-----+--------+------------+-----------+-------------------------------------------------------------------------------
+ 249 | active | SyncRep    |       4.6 | INSERT INTO replication_heartbeat (note) VALUES ('sync write, replica DOWN');
+(1 row)
+
+
+Client output after the wait was cancelled from another session:
+INSERT 0 1
+WARNING:  canceling wait for synchronous replication due to user request
+DETAIL:  The transaction has already committed locally, but might not have been replicated to the standby.
+
+Client waited 7 s; without the cancel it would wait until a standby returns
+
+===== 6c. Asynchronous, replica DOWN: commit succeeds immediately (availability over consistency) =====
+INSERT 0 1
+Commit time: 316 ms
+
+===== 6d. Replica restarted: it catches up from the slot (eventual consistency) =====
+Primary:
+ id |           note            
+----+---------------------------
+  1 | sync write, replica UP
+  2 | sync write, replica DOWN
+  3 | async write, replica DOWN
+(3 rows)
+
+Replica:
+ id |           note            
+----+---------------------------
+  1 | sync write, replica UP
+  2 | sync write, replica DOWN
+  3 | async write, replica DOWN
+(3 rows)
+
+
+===== 7. Failover: primary stopped, replica promoted =====
+docker stop crestfield-pg-primary
+ promoted 
+----------
+ t
+(1 row)
+
+Promotion took 561 ms
+
+ is_standby 
+------------
+ f
+(1 row)
+
+INSERT 0 1
+ id |                note                 
+----+-------------------------------------
+  1 | sync write, replica UP
+  2 | sync write, replica DOWN
+  3 | async write, replica DOWN
+ 34 | first write on the PROMOTED replica
+(4 rows)
+

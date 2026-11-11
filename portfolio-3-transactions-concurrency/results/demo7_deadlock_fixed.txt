@@ -1,0 +1,43 @@
+﻿===== Demo 7: Deadlock avoided by consistent lock ordering =====
+Variables: fix=true
+
+----- Session A (stdout) -----
+BEGIN
+ registration_id 
+-----------------
+              50
+              51
+(2 rows)
+
+UPDATE 1
+[A 17:13:56.832] updated 00001, sleeping before updating 00002
+UPDATE 1
+[A 17:13:59.846] updated 00002, committing
+COMMIT
+----- Session A (errors) -----
+
+----- Session B (stdout) -----
+BEGIN
+ registration_id 
+-----------------
+              50
+              51
+(2 rows)
+
+UPDATE 1
+[B 17:13:59.880] updated 00002, now updating 00001, which A holds, so B waits
+UPDATE 1
+[B 17:13:59.897] updated 00001, committing
+COMMIT
+----- Session B (errors) -----
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       52.0
+ CFU/2025/00002 |       52.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 0 |               1
+

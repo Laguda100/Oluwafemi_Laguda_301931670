@@ -1,0 +1,141 @@
+﻿Timing is on.
+DROP TABLE
+Time: 0.632 ms
+=== A. RANGE partitioning: result_history by session_year ===
+psql:/portfolio/portfolio-5-distributed-cloud/sql/01_partitioning.sql:15: NOTICE:  table "result_history" does not exist, skipping
+psql:/portfolio/portfolio-5-distributed-cloud/sql/01_partitioning.sql:15: NOTICE:  table "activity_log" does not exist, skipping
+CREATE TABLE
+Time: 7.354 ms
+CREATE TABLE
+Time: 10.895 ms
+CREATE TABLE
+Time: 11.664 ms
+CREATE TABLE
+Time: 11.674 ms
+CREATE TABLE
+Time: 11.924 ms
+CREATE TABLE
+Time: 14.740 ms
+CREATE TABLE
+Time: 12.107 ms
+ setseed 
+---------
+ 
+
+Time: 0.981 ms
+INSERT 0 400000
+Time: 5962.491 ms (00:05.962)
+ANALYZE
+Time: 1594.739 ms (00:01.595)
+--- Rows per partition ---
+        partition         |  rows  
+--------------------------+--------
+ result_history_2019_2022 | 200000
+ result_history_2023      |  50000
+ result_history_2024      |  50000
+ result_history_2025      |  50000
+ result_history_2026      |  50000
+
+Time: 34.735 ms
+--- Partition pruning: a query for ONE year touches ONE partition ---
+                                    QUERY PLAN                                    
+----------------------------------------------------------------------------------
+ HashAggregate (actual rows=6 loops=1)
+   Group Key: result_history.grade
+   Batches: 1  Memory Usage: 24kB
+   ->  Seq Scan on result_history_2024 result_history (actual rows=50000 loops=1)
+         Filter: (session_year = 2024)
+
+Time: 15.944 ms
+--- No partition key in WHERE: every partition is scanned ---
+                                       QUERY PLAN                                       
+----------------------------------------------------------------------------------------
+ Finalize Aggregate
+   ->  Gather
+         Workers Planned: 2
+         ->  Partial Aggregate
+               ->  Parallel Append
+                     ->  Parallel Seq Scan on result_history_2019_2022 result_history_1
+                           Filter: (grade = 'F'::bpchar)
+                     ->  Parallel Seq Scan on result_history_2023 result_history_2
+                           Filter: (grade = 'F'::bpchar)
+                     ->  Parallel Seq Scan on result_history_2024 result_history_3
+                           Filter: (grade = 'F'::bpchar)
+                     ->  Parallel Seq Scan on result_history_2025 result_history_4
+                           Filter: (grade = 'F'::bpchar)
+                     ->  Parallel Seq Scan on result_history_2026 result_history_5
+                           Filter: (grade = 'F'::bpchar)
+                     ->  Parallel Seq Scan on result_history_default result_history_6
+                           Filter: (grade = 'F'::bpchar)
+
+Time: 0.863 ms
+--- Archiving: DETACH the oldest partition (metadata-only, instant) ---
+ALTER TABLE
+Time: 3.121 ms
+ rows_still_in_main_table 
+--------------------------
+                   200000
+
+Time: 17.983 ms
+ rows_in_archived_table 
+------------------------
+                 200000
+
+Time: 15.214 ms
+ALTER TABLE
+Time: 21.882 ms
+(re-attached for the rest of the demo)
+=== B. HASH partitioning: activity_log by student_id (shard simulation) ===
+CREATE TABLE
+Time: 4.117 ms
+CREATE TABLE
+Time: 9.944 ms
+CREATE TABLE
+Time: 9.513 ms
+CREATE TABLE
+Time: 9.071 ms
+CREATE TABLE
+Time: 12.889 ms
+INSERT 0 200000
+Time: 1351.519 ms (00:01.352)
+ANALYZE
+Time: 416.852 ms
+--- Even distribution across the 4 shards ---
+        shard        | events | students | pct  
+---------------------+--------+----------+------
+ activity_log_shard0 |  49970 |    15002 | 25.0
+ activity_log_shard1 |  50121 |    15002 | 25.1
+ activity_log_shard2 |  50074 |    15031 | 25.0
+ activity_log_shard3 |  49835 |    14965 | 24.9
+
+Time: 211.673 ms
+--- Single-student query is routed to ONE shard ---
+                            QUERY PLAN                            
+------------------------------------------------------------------
+ Limit
+   ->  Sort
+         Sort Key: activity_log.occurred_at DESC
+         ->  Bitmap Heap Scan on activity_log_shard0 activity_log
+               Recheck Cond: (student_id = 4242)
+               ->  Bitmap Index Scan on activity_log_shard0_pkey
+                     Index Cond: (student_id = 4242)
+
+Time: 0.574 ms
+--- Cross-shard query (no shard key) must visit all shards ---
+                                      QUERY PLAN                                       
+---------------------------------------------------------------------------------------
+ Finalize GroupAggregate
+   Group Key: activity_log.event_type
+   ->  Gather Merge
+         Workers Planned: 2
+         ->  Sort
+               Sort Key: activity_log.event_type
+               ->  Partial HashAggregate
+                     Group Key: activity_log.event_type
+                     ->  Parallel Append
+                           ->  Parallel Seq Scan on activity_log_shard1 activity_log_2
+                           ->  Parallel Seq Scan on activity_log_shard2 activity_log_3
+                           ->  Parallel Seq Scan on activity_log_shard0 activity_log_1
+                           ->  Parallel Seq Scan on activity_log_shard3 activity_log_4
+
+Time: 0.661 ms

@@ -1,0 +1,30 @@
+﻿===== Demo 5: Overbooking prevented by row lock in register_course() =====
+Variables: 
+
+----- Session A (stdout) -----
+BEGIN
+[A 17:13:47.728] register_course(9) OK, registration_id = 77 , offering row is now locked
+COMMIT
+[A 17:13:50.737] committed, lock released
+----- Session A (errors) -----
+
+----- Session B (stdout) -----
+[B 17:13:49.294] calling register_course(10), waits for the lock held by A
+BEGIN
+[B 17:13:49.294] register_course returned (the error above shows the course was full)
+ROLLBACK
+----- Session B (errors) -----
+psql:/portfolio/portfolio-3-transactions-concurrency/sql/concurrency/overbooking_fixed_B.sql:6: ERROR:  Course offering 12 is full (1 of 1 seats taken)
+CONTEXT:  PL/pgSQL function register_course(integer,integer) line 33 at RAISE
+psql:/portfolio/portfolio-3-transactions-concurrency/sql/concurrency/now.sql:1: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+
+----- Final state -----
+   matric_no    | exam_score 
+----------------+------------
+ CFU/2025/00001 |       50.0
+ CFU/2025/00002 |       50.0
+
+ csc205_registered | csc205_capacity 
+-------------------+-----------------
+                 1 |               1
+

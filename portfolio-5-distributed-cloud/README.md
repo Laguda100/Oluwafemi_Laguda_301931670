@@ -94,7 +94,7 @@ The run script demonstrates both modes on the same cluster:
 | Mode | Demo | Normal operation (ELC) | Replica unreachable (PAC) | Classification |
 |---|---|---|---|---|
 | **Asynchronous** (default) | 3, 6c | Commit returns as soon as the primary has written its WAL, so **low latency**. A read on the replica *may* briefly miss the latest write (replication lag, typically milliseconds). | Writes **continue** (6c). The replica catches up later from the slot (6d). | **PA/EL**: availability and latency first, **eventual consistency** on replicas |
-| **Synchronous** (`synchronous_standby_names='*'`) | 6a, 6b | Commit waits for the replica's acknowledgement, so **higher latency**. No committed transaction can be lost in a failover. | Commits **block** (6b). After `statement_timeout`, PostgreSQL warns *"canceling wait for synchronous replication… The transaction has already committed locally, but might not have been replicated"*. | **PC/EC**: consistency and durability first |
+| **Synchronous** (`synchronous_standby_names='*'`) | 6a, 6b | Commit waits for the replica's acknowledgement, so **higher latency**. No committed transaction can be lost in a failover. | Commits **block** (6b) until a standby returns; `statement_timeout` cannot end this wait because PostgreSQL disables it before COMMIT. When a second session cancels the waiting backend with `pg_cancel_backend`, PostgreSQL warns *"canceling wait for synchronous replication… The transaction has already committed locally, but might not have been replicated"*. | **PC/EC**: consistency and durability first |
 
 ### My choice for the portal
 

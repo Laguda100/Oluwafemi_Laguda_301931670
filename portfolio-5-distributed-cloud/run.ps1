@@ -123,20 +123,30 @@ Write-Section '6a. Synchronous replication ON (replica up)' (
     @("Commit time with synchronous replica: $([int]$t1.TotalMilliseconds) ms (includes docker exec overhead)"))
 
 docker stop $R | Out-Null
+# statement_timeout cannot end this wait: PostgreSQL disables it before COMMIT,
+# and the wait for the standby happens inside COMMIT. So the INSERT runs in a
+# background job, and after 5 s a second session cancels the waiting backend.
 $sw = [Diagnostics.Stopwatch]::StartNew()
-$syncDown = Invoke-Sql $P @'
-SET statement_timeout = '5s';
-INSERT INTO replication_heartbeat (note) VALUES ('sync write, replica DOWN');
-'@
+$job = Start-Job -ArgumentList $P -ScriptBlock {
+    param($container)
+    "INSERT INTO replication_heartbeat (note) VALUES ('sync write, replica DOWN');" |
+        docker exec -i $container psql -X -U portal_admin -d result_portal 2>&1 | ForEach-Object { "$_" }
+}
+Start-Sleep -Seconds 5
+$blocked = Invoke-Sql $P "SELECT pid, state, wait_event, round(extract(epoch FROM now() - query_start)::numeric, 1) AS waiting_s, query FROM pg_stat_activity WHERE wait_event = 'SyncRep';"
+Invoke-Sql $P "SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE wait_event = 'SyncRep';" | Out-Null
+$syncDown = Receive-Job $job -Wait -AutoRemoveJob
 $t2 = $sw.Elapsed
 Write-Section '6b. Synchronous ON, replica DOWN: commit blocks (consistency over availability)' (
-    $syncDown + @("Client waited $([int]$t2.TotalSeconds) s before statement_timeout cancelled the wait"))
+    @('Session still waiting for the standby after 5 s:') + $blocked +
+    @('', 'Client output after the wait was cancelled from another session:') + $syncDown +
+    @('', "Client waited $([int]$t2.TotalSeconds) s; without the cancel it would wait until a standby returns"))
 
 Invoke-Sql $P 'ALTER SYSTEM RESET synchronous_standby_names;' | Out-Null
 Invoke-Sql $P 'SELECT pg_reload_conf();' | Out-Null
 Start-Sleep -Seconds 1
 $sw = [Diagnostics.Stopwatch]::StartNew()
-$asyncDown = Invoke-Sql $P "INSERT INTO replication_heartbeat (note) VALUES ('async write, replica DOWN');"
+$asyncDown = @(Invoke-Sql $P "INSERT INTO replication_heartbeat (note) VALUES ('async write, replica DOWN');")
 $t3 = $sw.Elapsed
 Write-Section '6c. Asynchronous, replica DOWN: commit succeeds immediately (availability over consistency)' (
     $asyncDown + @("Commit time: $([int]$t3.TotalMilliseconds) ms"))
